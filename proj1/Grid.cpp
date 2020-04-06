@@ -1,5 +1,7 @@
 #include "Grid.hpp"
 
+#include <glm/gtx/component_wise.hpp>
+
 using namespace glm;
 
 Grid::Grid(const glm::vec3& dimension, const glm::uvec3& size, float mass)
@@ -64,7 +66,6 @@ void Grid::LinkTetrahedra() {
 void Grid::DeformTetrahedra() {
   using namespace glm;
   const auto I = mat3();
-  // Deform tetrahedra and add force to particles
   for (auto& tt : tetrahedra_) {
     const auto T = GetTetrahedralFrame(tt);
     const auto F = T * tt.R_inv;

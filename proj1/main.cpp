@@ -5,6 +5,8 @@
 
 #include "Axes.hpp"
 #include "Camera.hpp"
+#include "Grid.hpp"
+#include "GridRenderer.hpp"
 
 using namespace gl;
 
@@ -92,6 +94,8 @@ int main() {
   const auto window = Initialize();
 
   Axes axes;
+  Grid grid(glm::vec3(1, 1, 1), glm::uvec3(10, 10, 10), 1.f);
+  GridRenderer renderer(grid.Particles());
 
   auto last_time = glfwGetTime();
 
@@ -100,10 +104,14 @@ int main() {
   while (!glfwWindowShouldClose(window)) {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    camera.Update(glfwGetTime() - last_time);
+    const auto dt = glfwGetTime() - last_time;
+    camera.Update(dt);
+    grid.Update(dt);
+    renderer.Update(grid.Particles());
     last_time = glfwGetTime();
 
     axes.Draw(camera);
+    renderer.Draw(camera);
 
     glfwSwapBuffers(window);
     glfwPollEvents();

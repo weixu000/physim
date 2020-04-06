@@ -1,7 +1,10 @@
 #pragma once
 #include <array>
 #include <glm/glm.hpp>
+#include <memory>
 #include <vector>
+
+#include "Particle.hpp"
 
 class Grid {
 public:
@@ -9,14 +12,9 @@ public:
 
   void Update(float dt);
 
-  void Draw();
+  const std::vector<Particle>& Particles() const { return particles_; }
 
 private:
-  struct Particle {
-    glm::vec3 pos, vel, force;
-    float mass;
-  };
-
   struct Tetrahedron {
     std::array<size_t, 4> verts;
     std::array<glm::vec3, 4> rest_n;
