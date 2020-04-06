@@ -66,6 +66,7 @@ Axes::Axes() {
 
     program = Program::create();
     program->attach(vertex_shader.get(), fragment_shader.get());
+    program->link();
   }
 }
 
