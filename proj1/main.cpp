@@ -15,7 +15,7 @@ using namespace gl;
 
 #include <iostream>
 
-Camera camera(640, 480);
+Camera camera({-2, 1, -2}, {0, 0, 0}, 640, 480);
 
 void FramebufferSizeCallback(GLFWwindow *, int width, int height) {
   glViewport(0, 0, width, height);
