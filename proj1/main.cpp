@@ -38,6 +38,9 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods) {
   }
 }
 
+Grid grid({0.5, 2, 0.5}, {1, 1, 1});
+const auto time_step = 1E-2f;
+
 void KeyCallback(GLFWwindow *window, int key, int scancode, int action,
                  int mods) {
   switch (key) {
@@ -53,6 +56,9 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action,
   case GLFW_KEY_D:
     camera.right_ = action != GLFW_RELEASE;
     break;
+  }
+  if (key == GLFW_KEY_SPACE && action != GLFW_RELEASE) {
+    grid.Update(time_step);
   }
 }
 
@@ -94,7 +100,6 @@ int main() {
   const auto window = Initialize();
 
   Axes axes;
-  Grid grid({0.5, 2, 0.5}, {1, 1, 1});
   GridRenderer renderer(grid.Particles());
 
   auto last_time = glfwGetTime();
@@ -106,7 +111,6 @@ int main() {
 
     const auto dt = glfwGetTime() - last_time;
     camera.Update(dt);
-    grid.Update(dt);
     renderer.Update(grid.Particles());
     last_time = glfwGetTime();
 
