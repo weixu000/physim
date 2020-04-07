@@ -14,9 +14,12 @@ public:
 
   const std::vector<Particle>& Particles() const { return particles_; }
 
+  using Indices = std::array<glm::uint, 4>;  // Tetrahedron 4 indices
+
+  const std::vector<Indices>& ParticleIndices() const { return vertices_; }
+
 private:
   struct Tetrahedron {
-    std::array<size_t, 4> verts;
     std::array<glm::vec3, 4> rest_n;
     glm::mat3 R_inv;
   };
@@ -38,7 +41,7 @@ private:
   void AddTetrahedron(const glm::uvec3& v0, const glm::uvec3& v1,
                       const glm::uvec3& v2, const glm::uvec3& v3);
 
-  glm::mat3 GetTetrahedralFrame(const Tetrahedron& tt) const;
+  glm::mat3 GetTetrahedralFrame(const Indices& verts) const;
 
   /**
    * Compute strain-stress relationship
@@ -52,6 +55,7 @@ private:
   glm::uvec3 size_, stride_;
   std::vector<Particle> particles_;
   std::vector<Tetrahedron> tetrahedra_;
+  std::vector<Indices> vertices_;
 
   // Material parameters
   float mu_, lambda_;

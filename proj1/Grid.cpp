@@ -80,12 +80,9 @@ void Grid::LinkTetrahedra() {
 void Grid::AddTetrahedron(const glm::uvec3& v0, const glm::uvec3& v1,
                           const glm::uvec3& v2, const glm::uvec3& v3) {
   Tetrahedron tt;
-  tt.verts[0] = compAdd(v0 * stride_);
-  tt.verts[1] = compAdd(v1 * stride_);
-  tt.verts[2] = compAdd(v2 * stride_);
-  tt.verts[3] = compAdd(v3 * stride_);
-
-  const auto R = GetTetrahedralFrame(tt);
+  const Indices verts = {compAdd(v0 * stride_), compAdd(v1 * stride_),
+                         compAdd(v2 * stride_), compAdd(v3 * stride_)};
+  const auto R = GetTetrahedralFrame(verts);
   tt.R_inv = inverse(R);
   assert(all(isfinite(tt.R_inv[0])) && all(isfinite(tt.R_inv[1])) &&
          all(isfinite(tt.R_inv[2])));
@@ -102,19 +99,20 @@ void Grid::AddTetrahedron(const glm::uvec3& v0, const glm::uvec3& v1,
   assert(abs(compAdd(normal)) < 1E-3f);
 #endif
   tetrahedra_.push_back(tt);
+  vertices_.push_back(verts);
 
   // Distribute mass to every vertices
   const auto m_p = density_ * dot(cross(R[0], R[1]), R[2]) / 6 / 4;
   assert(m_p >= 0);  // Volume should be positive
-  for (auto v : tt.verts) {
+  for (auto v : verts) {
     particles_[v].mass += m_p;
   }
 }
 
-glm::mat3 Grid::GetTetrahedralFrame(const Grid::Tetrahedron& tt) const {
-  return mat3(particles_[tt.verts[0]].pos - particles_[tt.verts[3]].pos,
-              particles_[tt.verts[1]].pos - particles_[tt.verts[3]].pos,
-              particles_[tt.verts[2]].pos - particles_[tt.verts[3]].pos);
+glm::mat3 Grid::GetTetrahedralFrame(const Indices& verts) const {
+  return mat3(particles_[verts[0]].pos - particles_[verts[3]].pos,
+              particles_[verts[1]].pos - particles_[verts[3]].pos,
+              particles_[verts[2]].pos - particles_[verts[3]].pos);
 }
 
 void Grid::Update(float dt) {
@@ -133,8 +131,9 @@ void Grid::Update(float dt) {
 void Grid::DeformTetrahedra() {
   using namespace glm;
   const auto I = mat3(1.f);
-  for (const auto& tt : tetrahedra_) {
-    const auto T = GetTetrahedralFrame(tt);
+  for (size_t t = 0; t < tetrahedra_.size(); ++t) {
+    const auto& tt = tetrahedra_[t];
+    const auto T = GetTetrahedralFrame(vertices_[t]);
     const auto F = T * tt.R_inv;
     const auto epsilon = (transpose(F) * F - I) / 2.f;
     const auto sigma =
@@ -142,7 +141,7 @@ void Grid::DeformTetrahedra() {
         lambda_ * (epsilon[0][0] + epsilon[1][1] + epsilon[2][2]) * I;
     const auto F_sigma = F * sigma;
     for (int i = 0; i < 4; ++i) {
-      particles_[tt.verts[i]].force += F_sigma * tt.rest_n[i];
+      particles_[vertices_[t][i]].force += F_sigma * tt.rest_n[i];
     }
   }
 }
