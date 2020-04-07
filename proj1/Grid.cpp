@@ -1,28 +1,26 @@
 #include "Grid.hpp"
 
+#include <glm/gtx/compatibility.hpp>
 #include <glm/gtx/component_wise.hpp>
 
 using namespace glm;
 
-Grid::Grid(const glm::vec3& dimension, const glm::uvec3& size, float mass)
-    : dimension_(dimension),
-      mass_(mass),
-      volume_(dimension.x * dimension.y * dimension.z),
-      size_(size),
-      stride_(size.y * size.z, size.z, 1) {
+Grid::Grid(const glm::vec3& origin, const glm::vec3& dimension)
+    : origin_(origin), dimension_(dimension) {
+  const auto cell_len = .1f;
+  size_ = max(vec3(2), ceil(dimension / cell_len));
+  stride_ = vec3(size_.y * size_.z, size_.z, 1);
+
+  // Material of rubber
+  //  density_ = 1522.f;
+  //  const auto E = 0.05E9f, nu = 0.4999f;
+  density_ = 1.f;
+  const auto E = 1.0f, nu = 0.3f;
+  lambda_ = E * nu / (1 + nu) / (1 - 2 * nu);
+  mu_ = E / 2 / (1 + nu);
+
   SetupGrid();
   LinkTetrahedra();
-}
-
-void Grid::Update(float dt) {
-  DeformTetrahedra();
-
-  for (auto& p : particles_) {
-    const auto a = p.force / p.mass;
-    p.vel += a * dt;
-    p.pos += p.vel * dt;
-    p.force = vec3(0.f);
-  }
 }
 
 void Grid::SetupGrid() {
@@ -32,8 +30,11 @@ void Grid::SetupGrid() {
       for (unsigned k = 0; k < size_.z; ++k) {
         const auto index = uvec3(i, j, k);
         Particle p;
-        p.pos = vec3(index) * delta;
-        p.vel = p.force = vec3(0.f);
+        p.pos = vec3(index) * delta + origin_;
+        p.vel = vec3(0.f);
+        // Computed later
+        p.force = vec3(0.f);
+        p.mass = 0.f;
         particles_.push_back(p);
       }
     }
@@ -43,7 +44,7 @@ void Grid::SetupGrid() {
 void Grid::LinkTetrahedra() {
   for (unsigned i = 0; i < size_.x - 1; ++i) {
     for (unsigned j = 0; j < size_.y - 1; ++j) {
-      for (unsigned k = 0; k < size_.y - 1; ++k) {
+      for (unsigned k = 0; k < size_.z - 1; ++k) {
         std::array<std::array<std::array<uvec3, 2>, 2>, 2> v;
         for (unsigned ii = 0; ii < 2; ++ii) {
           for (unsigned jj = 0; jj < 2; ++jj) {
@@ -56,27 +57,24 @@ void Grid::LinkTetrahedra() {
         AddTetrahedron(v[0][0][0], v[1][0][0], v[0][0][1], v[0][1][0]);
         AddTetrahedron(v[1][0][0], v[1][0][1], v[0][0][1], v[1][1][1]);
         AddTetrahedron(v[1][1][1], v[0][1][0], v[0][1][1], v[0][0][1]);
-        AddTetrahedron(v[1][1][1], v[1][1][0], v[0][0][1], v[1][0][0]);
+        AddTetrahedron(v[1][1][1], v[1][1][0], v[0][1][0], v[1][0][0]);
         AddTetrahedron(v[1][0][0], v[1][1][1], v[0][0][1], v[0][1][0]);
       }
     }
   }
-}
 
-void Grid::DeformTetrahedra() {
-  using namespace glm;
-  const auto I = mat3();
-  for (auto& tt : tetrahedra_) {
-    const auto T = GetTetrahedralFrame(tt);
-    const auto F = T * tt.R_inv;
-    const auto epsilon = (transpose(F) * F - I);
-    const auto sigma =
-        2 * mu_ * epsilon +
-        lambda_ * (epsilon[0][0] + epsilon[1][1] + epsilon[2][2]) * I;
-    for (int i = 0; i < 3; ++i) {
-      particles_[tt.verts[i]].force += -F * sigma * tt.rest_n[i];
-    }
+  // Add gravity
+  for (auto& p : particles_) {
+    p.force = p.mass * Particle::g;
   }
+#ifndef NDEBUG
+  // Mass is correct
+  auto mass = 0.f;
+  for (const auto& p : particles_) {
+    mass += p.mass;
+  }
+  assert(mass / (density_ * compMul(dimension_)) - 1 < 1E-3f);
+#endif
 }
 
 void Grid::AddTetrahedron(const glm::uvec3& v0, const glm::uvec3& v1,
@@ -89,13 +87,25 @@ void Grid::AddTetrahedron(const glm::uvec3& v0, const glm::uvec3& v1,
 
   const auto R = GetTetrahedralFrame(tt);
   tt.R_inv = inverse(R);
-  tt.rest_n[0] = cross(R[2], R[1]);
-  tt.rest_n[1] = cross(R[0], R[2]);
-  tt.rest_n[2] = cross(R[1], R[0]);
-  tt.rest_n[3] = cross(R[1] - R[0], R[2] - R[0]);
+  assert(all(isfinite(tt.R_inv[0])) && all(isfinite(tt.R_inv[1])) &&
+         all(isfinite(tt.R_inv[2])));
+  tt.rest_n[0] = cross(R[2], R[1]) / 2.f;
+  tt.rest_n[1] = cross(R[0], R[2]) / 2.f;
+  tt.rest_n[2] = cross(R[1], R[0]) / 2.f;
+  tt.rest_n[3] = cross(R[1] - R[0], R[2] - R[0]) / 2.f;
+#ifndef NDEBUG
+  // closed surface normal sums to 0
+  auto normal = vec3(0.f);
+  for (const auto& n : tt.rest_n) {
+    normal += n;
+  }
+  assert(abs(compAdd(normal)) < 1E-3f);
+#endif
   tetrahedra_.push_back(tt);
 
-  const auto m_p = mass_ * dot(cross(R[0], R[1]), R[2]) / 6 / volume_;
+  // Distribute mass to every vertices
+  const auto m_p = density_ * dot(cross(R[0], R[1]), R[2]) / 6 / 4;
+  assert(m_p >= 0);  // Volume should be positive
   for (auto v : tt.verts) {
     particles_[v].mass += m_p;
   }
@@ -105,4 +115,34 @@ glm::mat3 Grid::GetTetrahedralFrame(const Grid::Tetrahedron& tt) const {
   return mat3(particles_[tt.verts[0]].pos - particles_[tt.verts[3]].pos,
               particles_[tt.verts[1]].pos - particles_[tt.verts[3]].pos,
               particles_[tt.verts[2]].pos - particles_[tt.verts[3]].pos);
+}
+
+void Grid::Update(float dt) {
+  // Add gravity
+  for (auto& p : particles_) {
+    p.force = p.mass * Particle::g;
+  }
+
+  DeformTetrahedra();
+
+  for (auto& p : particles_) {
+    p.Update(dt);
+  }
+}
+
+void Grid::DeformTetrahedra() {
+  using namespace glm;
+  const auto I = mat3(1.f);
+  for (const auto& tt : tetrahedra_) {
+    const auto T = GetTetrahedralFrame(tt);
+    const auto F = T * tt.R_inv;
+    const auto epsilon = (transpose(F) * F - I) / 2.f;
+    const auto sigma =
+        2 * mu_ * epsilon +
+        lambda_ * (epsilon[0][0] + epsilon[1][1] + epsilon[2][2]) * I;
+    const auto F_sigma = F * sigma;
+    for (int i = 0; i < 4; ++i) {
+      particles_[tt.verts[i]].force += F_sigma * tt.rest_n[i];
+    }
+  }
 }

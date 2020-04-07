@@ -8,7 +8,7 @@
 
 class Grid {
 public:
-  Grid(const glm::vec3& dimension, const glm::uvec3& size, float mass);
+  Grid(const glm::vec3& origin, const glm::vec3& dimension);
 
   void Update(float dt);
 
@@ -45,12 +45,15 @@ private:
    */
   void DeformTetrahedra();
 
-  glm::vec3 dimension_;
-  float mass_, volume_;
+  // Geometry parameters
+  glm::vec3 origin_, dimension_;
 
+  // Grid parameters
   glm::uvec3 size_, stride_;
   std::vector<Particle> particles_;
   std::vector<Tetrahedron> tetrahedra_;
 
+  // Material parameters
   float mu_, lambda_;
+  float density_;
 };

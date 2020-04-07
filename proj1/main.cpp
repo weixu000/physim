@@ -94,7 +94,7 @@ int main() {
   const auto window = Initialize();
 
   Axes axes;
-  Grid grid(glm::vec3(1, 1, 1), glm::uvec3(10, 10, 10), 1.f);
+  Grid grid({0.5, 2, 0.5}, {1, 1, 1});
   GridRenderer renderer(grid.Particles());
 
   auto last_time = glfwGetTime();
