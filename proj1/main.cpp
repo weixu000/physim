@@ -38,8 +38,8 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods) {
   }
 }
 
-Grid grid({0.5, 2, 0.5}, {1, 1, 1});
-const auto time_step = 1E-2f;
+Grid grid({0.5, .5, 0.5}, {1, 1, 1});
+const auto time_step = 5E-3f;
 
 void KeyCallback(GLFWwindow *window, int key, int scancode, int action,
                  int mods) {

@@ -6,9 +6,8 @@ struct Particle {
     using namespace glm;
     if (pos.y <= 0) {
       // Elastic collision with y=0
-      force.y = 0;
-      vel.y = vel.y < 0 ? -vel.y : vel.y;
-      pos.y = 0;
+      force.y = max(0.f, force.y);
+      vel.y = pos.y = 0;
     }
     const auto a = force / mass;
     vel += a * dt;

@@ -1,21 +1,20 @@
 #include "Grid.hpp"
 
-#include <glm/gtx/compatibility.hpp>
 #include <glm/gtx/component_wise.hpp>
 
 using namespace glm;
 
 Grid::Grid(const glm::vec3& origin, const glm::vec3& dimension)
     : origin_(origin), dimension_(dimension) {
-  const auto cell_len = .1f;
-  size_ = max(vec3(2), ceil(dimension / cell_len));
+  const auto cell_len = .25f;
+  size_ = max(vec3(2), ceil(dimension / cell_len) + vec3(1));
   stride_ = vec3(size_.y * size_.z, size_.z, 1);
 
   // Material of rubber
   //  density_ = 1522.f;
   //  const auto E = 0.05E9f, nu = 0.4999f;
   density_ = 1.f;
-  const auto E = 1.0f, nu = 0.3f;
+  const auto E = 25.0f, nu = 0.3f;
   lambda_ = E * nu / (1 + nu) / (1 - 2 * nu);
   mu_ = E / 2 / (1 + nu);
 
@@ -84,8 +83,6 @@ void Grid::AddTetrahedron(const glm::uvec3& v0, const glm::uvec3& v1,
                          compAdd(v2 * stride_), compAdd(v3 * stride_)};
   const auto R = GetTetrahedralFrame(verts);
   tt.R_inv = inverse(R);
-  assert(all(isfinite(tt.R_inv[0])) && all(isfinite(tt.R_inv[1])) &&
-         all(isfinite(tt.R_inv[2])));
   tt.rest_n[0] = cross(R[2], R[1]) / 2.f;
   tt.rest_n[1] = cross(R[0], R[2]) / 2.f;
   tt.rest_n[2] = cross(R[1], R[0]) / 2.f;
@@ -139,9 +136,8 @@ void Grid::DeformTetrahedra() {
     const auto sigma =
         2 * mu_ * epsilon +
         lambda_ * (epsilon[0][0] + epsilon[1][1] + epsilon[2][2]) * I;
-    const auto F_sigma = F * sigma;
     for (int i = 0; i < 4; ++i) {
-      particles_[vertices_[t][i]].force += F_sigma * tt.rest_n[i];
+      particles_[vertices_[t][i]].force += sigma * tt.rest_n[i];
     }
   }
 }
