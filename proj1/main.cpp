@@ -100,14 +100,15 @@ int main() {
   const auto window = Initialize();
 
   Axes axes;
-  GridRenderer renderer(grid.Particles());
+  GridRenderer renderer(grid.Particles(), grid.ParticleIndices());
 
   auto last_time = glfwGetTime();
 
   // Rendering
   glClearColor(0.f, 0.f, 0.f, 0.f);
+  glEnable(GL_DEPTH_TEST);
   while (!glfwWindowShouldClose(window)) {
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     const auto dt = glfwGetTime() - last_time;
     camera.Update(dt);
