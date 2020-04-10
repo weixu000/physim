@@ -4,17 +4,11 @@
 
 using namespace glm;
 
-Grid::Grid(const glm::vec3& origin, const glm::vec3& dimension)
-    : origin_(origin), dimension_(dimension) {
-  const auto cell_len = .25f;
-  size_ = max(vec3(2), ceil(dimension / cell_len) + vec3(1));
+Grid::Grid(const glm::vec3& origin, const glm::vec3& cell,
+           const glm::uvec3& size, float E, float nu, float density)
+    : origin_(origin), cell_(cell), size_(size), density_(density) {
   stride_ = vec3(size_.y * size_.z, size_.z, 1);
 
-  // Material of rubber
-  //  density_ = 1522.f;
-  //  const auto E = 0.05E9f, nu = 0.4999f;
-  density_ = 1.f;
-  const auto E = 25.0f, nu = 0.3f;
   lambda_ = E * nu / (1 + nu) / (1 - 2 * nu);
   mu_ = E / 2 / (1 + nu);
 
@@ -23,13 +17,12 @@ Grid::Grid(const glm::vec3& origin, const glm::vec3& dimension)
 }
 
 void Grid::SetupGrid() {
-  const auto delta = dimension_ / vec3(size_ - 1U);
   for (unsigned i = 0; i < size_.x; ++i) {
     for (unsigned j = 0; j < size_.y; ++j) {
       for (unsigned k = 0; k < size_.z; ++k) {
         const auto index = uvec3(i, j, k);
         Particle p;
-        p.pos = vec3(index) * delta + origin_;
+        p.pos = vec3(index) * cell_ + origin_;
         p.vel = vec3(0.f);
         // Computed later
         p.force = vec3(0.f);

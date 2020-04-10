@@ -33,7 +33,7 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods) {
   }
 }
 
-Grid grid({0.5, .5, 0.5}, {1, 1, 1});
+Grid grid({0.5, .5, 0.5}, {.25, .25, .25}, {4, 4, 4}, 50.f, .3f);
 const auto time_step = 5E-3f;
 
 auto wireframe = false;
