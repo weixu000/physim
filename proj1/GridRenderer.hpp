@@ -1,12 +1,9 @@
 #pragma once
 #include <glm/glm.hpp>
+#include <glpp/buffer.hpp>
+#include <glpp/vertexarray.hpp>
 #include <memory>
 #include <vector>
-
-namespace globjects {
-class Buffer;
-class VertexArray;
-}  // namespace globjects
 
 class Camera;
 class Particle;
@@ -23,6 +20,6 @@ public:
 private:
   size_t size_, tetra_size_;
 
-  std::unique_ptr<globjects::Buffer> vbo, ebo;
-  std::unique_ptr<globjects::VertexArray> vao;
+  std::unique_ptr<glpp::Buffer> vbo, ebo;
+  std::unique_ptr<glpp::VertexArray> vao;
 };

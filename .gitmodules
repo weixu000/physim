@@ -1,0 +1,3 @@
+[submodule "extern/glpp"]
+	path = extern/glpp
+	url = https://github.com/weixu000/glpp.git

@@ -1,14 +1,9 @@
-#include <glbinding-aux/ContextInfo.h>
-#include <glbinding-aux/types_to_string.h>
-#include <glbinding/gl/gl.h>
-#include <globjects/globjects.h>
+#include <glad/glad.h>
 
 #include "Axes.hpp"
 #include "Camera.hpp"
 #include "Grid.hpp"
 #include "GridRenderer.hpp"
-
-using namespace gl;
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -84,15 +79,10 @@ GLFWwindow *Initialize() {
   glfwSwapInterval(1);
 
   // globjects setup
-  globjects::init(glfwGetProcAddress);
-
-  std::cout << std::endl
-            << "OpenGL Version:  " << glbinding::aux::ContextInfo::version()
-            << std::endl
-            << "OpenGL Vendor:   " << glbinding::aux::ContextInfo::vendor()
-            << std::endl
-            << "OpenGL Renderer: " << glbinding::aux::ContextInfo::renderer()
-            << std::endl;
+  if (gladLoadGL() == 0) {
+    glfwTerminate();
+    exit(EXIT_FAILURE);
+  }
   return window;
 }
 

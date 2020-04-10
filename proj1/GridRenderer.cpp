@@ -1,19 +1,19 @@
 #include "GridRenderer.hpp"
 
-#include <glbinding/gl/gl.h>
-#include <globjects/VertexAttributeBinding.h>
-#include <globjects/base/StaticStringSource.h>
-#include <globjects/globjects.h>
+#include <glad/glad.h>
+
+#include <glpp/buffer.hpp>
+#include <glpp/program.hpp>
+#include <glpp/vertexarray.hpp>
 
 #include "Camera.hpp"
 #include "Particle.hpp"
 
 using namespace glm;
-using namespace gl;
-using namespace globjects;
+using namespace glpp;
 
 namespace {
-StaticStringSource vertex_src(R"(
+const auto vertex_src = R"(
 #version 450
 
 layout (location = 0) in vec3 pos;
@@ -23,7 +23,6 @@ layout (location = 3) in float mass;
 
 uniform mat4 projection;
 uniform mat4 view;
-uniform vec3 eye;
 
 out vec3 vPos;
 out vec3 vVec;
@@ -36,8 +35,8 @@ void main() {
     vVec = force / mass / 9.8 / 10;
     vColor = vec3(1.0);
 }
-)");
-StaticStringSource fragment_src(R"(
+)";
+const auto fragment_src = R"(
 #version 450
 
 in vec3 vColor;
@@ -47,8 +46,8 @@ out vec4 fragColor;
 void main() {
     fragColor = vec4(vColor, 1.0);
 }
-)");
-StaticStringSource vec_geom_src(R"(
+)";
+const auto vec_geom_src = R"(
 #version 450
 layout (points) in;
 layout (line_strip, max_vertices = 2) out;
@@ -70,8 +69,8 @@ void main() {
     EmitVertex();
     EndPrimitive();
 }
-)");
-StaticStringSource tetra_geom_src(R"(
+)";
+const auto tetra_geom_src = R"(
 #version 450
 layout (lines_adjacency) in;
 layout (triangle_strip, max_vertices = 6) out;
@@ -105,73 +104,58 @@ void main() {
   EmitVertex();
   EndPrimitive();
 }
-)");
-std::unique_ptr<Shader> vertex_shader, fragment_shader, vec_geom, tetra_geom;
+)";
 std::unique_ptr<Program> vec_program, tetra_program;
 }  // namespace
 
 GridRenderer::GridRenderer(const std::vector<Particle>& particles,
-                           const std::vector<std::array<glm::uint, 4>>& tetra)
+                           const std::vector<std::array<uint, 4>>& tetra)
     : size_(particles.size()), tetra_size_(tetra.size()) {
-  vbo = Buffer::create();
-  vbo->setStorage(particles, GL_DYNAMIC_STORAGE_BIT);
+  vbo = std::make_unique<Buffer>();
+  ebo = std::make_unique<Buffer>();
+  vbo->CreateStorage(particles, GL_DYNAMIC_STORAGE_BIT);
+  ebo->CreateStorage(tetra, GL_CLIENT_STORAGE_BIT);
 
-  ebo = Buffer::create();
-  ebo->setStorage(tetra, GL_CLIENT_STORAGE_BIT);
-
-  vao = VertexArray::create();
-  vao->bindElementBuffer(ebo.get());
-  vao->binding(0)->setBuffer(vbo.get(), 0, sizeof(Particle));
-  vao->binding(0)->setAttribute(0);
-  vao->binding(0)->setFormat(3, GL_FLOAT);
-  vao->enable(0);
-  vao->binding(0)->setAttribute(1);
-  vao->binding(0)->setFormat(3, GL_FLOAT, GL_FALSE, sizeof(vec3));
-  vao->enable(1);
-  vao->binding(0)->setAttribute(2);
-  vao->binding(0)->setFormat(3, GL_FLOAT, GL_FALSE, 2 * sizeof(vec3));
-  vao->enable(2);
-  vao->binding(0)->setAttribute(3);
-  vao->binding(0)->setFormat(1, GL_FLOAT, GL_FALSE, 3 * sizeof(vec3));
-  vao->enable(3);
+  vao = std::make_unique<VertexArray>();
+  vao->BindVertexBuffer(0, *vbo, sizeof(Particle), 0);
+  vao->BindElementBuffer(*ebo);
+  vao->EnableAttrib(0, 1, 2, 3);
+  vao->AttribBinding(0, 0, 1, 2, 3);
+  vao->AttribFormat<vec3>(0, 0);
+  vao->AttribFormat<vec3>(1, sizeof(vec3));
+  vao->AttribFormat<vec3>(2, 2 * sizeof(vec3));
+  vao->AttribFormat<float>(3, 3 * sizeof(vec3));
 
   if (!vec_program) {
-    vertex_shader = Shader::create(GL_VERTEX_SHADER, &vertex_src);
-    fragment_shader = Shader::create(GL_FRAGMENT_SHADER, &fragment_src);
+    vec_program =
+        std::make_unique<Program>(Shader(VERTEX_SHADER, vertex_src),
+                                  Shader(FRAGMENT_SHADER, fragment_src),
+                                  Shader(GEOMETRY_SHADER, vec_geom_src));
 
-    vec_geom = Shader::create(GL_GEOMETRY_SHADER, &vec_geom_src);
-    vec_program = Program::create();
-    vec_program->attach(vertex_shader.get(), fragment_shader.get(),
-                        vec_geom.get());
-    vec_program->link();
-
-    tetra_geom = Shader::create(GL_GEOMETRY_SHADER, &tetra_geom_src);
-    tetra_program = Program::create();
-    tetra_program->attach(vertex_shader.get(), fragment_shader.get(),
-                          tetra_geom.get());
-    tetra_program->link();
+    tetra_program =
+        std::make_unique<Program>(Shader(VERTEX_SHADER, vertex_src),
+                                  Shader(FRAGMENT_SHADER, fragment_src),
+                                  Shader(GEOMETRY_SHADER, tetra_geom_src));
   }
 }
 
 void GridRenderer::Update(const std::vector<Particle>& particles) {
   assert(particles.size() == size_);
-  vbo->setSubData(particles);
+  vbo->SetSubData(particles);
 }
 
 void GridRenderer::Draw(const Camera& camera) {
-  vao->bind();
+  vao->Bind();
 
-  vec_program->use();
-  vec_program->setUniform("projection", camera.Projection());
-  vec_program->setUniform("view", camera.View());
-  vec_program->setUniform("eye", camera.Eye());
-  vao->drawArrays(GL_POINTS, 0, size_);
+  vec_program->Use();
+  vec_program->Uniform("projection", camera.Projection());
+  vec_program->Uniform("view", camera.View());
+  glDrawArrays(GL_POINTS, 0, size_);
 
-  tetra_program->use();
-  tetra_program->setUniform("projection", camera.Projection());
-  tetra_program->setUniform("view", camera.View());
-  tetra_program->setUniform("eye", camera.Eye());
+  tetra_program->Use();
+  tetra_program->Uniform("projection", camera.Projection());
+  tetra_program->Uniform("view", camera.View());
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  vao->drawElements(GL_LINES_ADJACENCY, tetra_size_ * 5, GL_UNSIGNED_INT);
+  glDrawElements(GL_LINES_ADJACENCY, tetra_size_ * 5, GL_UNSIGNED_INT, nullptr);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
