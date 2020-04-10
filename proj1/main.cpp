@@ -36,6 +36,8 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods) {
 Grid grid({0.5, .5, 0.5}, {1, 1, 1});
 const auto time_step = 5E-3f;
 
+auto wireframe = false;
+
 void KeyCallback(GLFWwindow *window, int key, int scancode, int action,
                  int mods) {
   switch (key) {
@@ -54,6 +56,9 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action,
   }
   if (key == GLFW_KEY_SPACE && action != GLFW_RELEASE) {
     grid.Update(time_step);
+  }
+  if (key == GLFW_KEY_C && action == GLFW_PRESS) {
+    wireframe = !wireframe;
   }
 }
 
@@ -106,7 +111,11 @@ int main() {
     last_time = glfwGetTime();
 
     axes.Draw(camera);
-    renderer.Draw(camera);
+    if (wireframe) {
+      renderer.DrawTetrahedra(camera);
+    } else {
+      renderer.DrawSurface(camera);
+    }
 
     glfwSwapBuffers(window);
     glfwPollEvents();

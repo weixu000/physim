@@ -15,7 +15,9 @@ public:
 
   void Update(const std::vector<Particle>& particles);
 
-  void Draw(const Camera& camera);
+  void DrawTetrahedra(const Camera& camera);
+
+  void DrawSurface(const Camera& camera);
 
 private:
   size_t size_, tetra_size_;
