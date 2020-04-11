@@ -9,7 +9,7 @@
 class Grid {
 public:
   Grid(const glm::vec3& origin, const glm::vec3& cell, const glm::uvec3& size,
-       float E, float nu, float density = 1.f);
+       float E, float nu, float eta, float density = 1.f);
 
   void Update(float dt);
 
@@ -44,6 +44,8 @@ private:
 
   glm::mat3 GetTetrahedralFrame(const Indices& verts) const;
 
+  glm::mat3 GetTetrahedralVelocity(const Indices& verts) const;
+
   /**
    * Compute strain-stress relationship
    */
@@ -59,6 +61,6 @@ private:
   std::vector<Indices> vertices_;
 
   // Material parameters
-  float mu_, lambda_;
+  float mu_, lambda_, eta_;
   float density_;
 };

@@ -5,8 +5,12 @@
 using namespace glm;
 
 Grid::Grid(const glm::vec3& origin, const glm::vec3& cell,
-           const glm::uvec3& size, float E, float nu, float density)
-    : origin_(origin), cell_(cell), size_(size), density_(density) {
+           const glm::uvec3& size, float E, float nu, float eta, float density)
+    : origin_(origin),
+      cell_(cell),
+      size_(size + 1U),
+      eta_(eta),
+      density_(density) {
   stride_ = vec3(size_.y * size_.z, size_.z, 1);
 
   lambda_ = E * nu / (1 + nu) / (1 - 2 * nu);
@@ -65,7 +69,7 @@ void Grid::LinkTetrahedra() {
   for (const auto& p : particles_) {
     mass += p.mass;
   }
-  assert(mass / (density_ * compMul(dimension_)) - 1 < 1E-3f);
+  assert(mass / (density_ * compMul(cell_ * vec3(size_))) - 1 < 1E-3f);
 #endif
 }
 
@@ -105,6 +109,12 @@ glm::mat3 Grid::GetTetrahedralFrame(const Indices& verts) const {
               particles_[verts[2]].pos - particles_[verts[3]].pos);
 }
 
+glm::mat3 Grid::GetTetrahedralVelocity(const Grid::Indices& verts) const {
+  return mat3(particles_[verts[0]].vel - particles_[verts[3]].vel,
+              particles_[verts[1]].vel - particles_[verts[3]].vel,
+              particles_[verts[2]].vel - particles_[verts[3]].vel);
+}
+
 void Grid::Update(float dt) {
   // Add gravity
   for (auto& p : particles_) {
@@ -123,12 +133,14 @@ void Grid::DeformTetrahedra() {
   const auto I = mat3(1.f);
   for (size_t t = 0; t < tetrahedra_.size(); ++t) {
     const auto& tt = tetrahedra_[t];
-    const auto T = GetTetrahedralFrame(vertices_[t]);
-    const auto F = T * tt.R_inv;
+    const auto F = GetTetrahedralFrame(vertices_[t]) * tt.R_inv;
+    const auto F_v = GetTetrahedralVelocity(vertices_[t]) * tt.R_inv;
     const auto epsilon = (transpose(F) * F - I) / 2.f;
+    const auto epsilon_rate = (transpose(F) * F_v + transpose(F_v) * F);
     const auto sigma =
         2 * mu_ * epsilon +
-        lambda_ * (epsilon[0][0] + epsilon[1][1] + epsilon[2][2]) * I;
+        lambda_ * (epsilon[0][0] + epsilon[1][1] + epsilon[2][2]) * I +
+        epsilon_rate * eta_;
     for (int i = 0; i < 4; ++i) {
       particles_[vertices_[t][i]].force += sigma * tt.rest_n[i];
     }

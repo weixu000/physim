@@ -4,16 +4,13 @@
 struct Particle {
   void Update(float dt) {
     using namespace glm;
-    if (pos.y <= 0) {
-      // Elastic collision with y=0
-      force.y = max(0.f, force.y);
-      vel.y = pos.y = 0;
-    }
     const auto a = force / mass;
     vel += a * dt;
     pos += vel * dt;
-
-    vel *= 0.99f;  // Damp velocity
+    if (pos.y <= 0) {
+      // Collision with y=0
+      vel.y = pos.y = 0;
+    }
   }
 
   glm::vec3 pos, vel, force;
