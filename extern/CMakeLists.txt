@@ -1,1 +1,6 @@
-add_subdirectory(glpp)
+file(GLOB EXTERN_DIRS LIST_DIRECTORIES true CONFIGURE_DEPENDS */)
+foreach (EXTERN_DIR ${EXTERN_DIRS})
+    if (IS_DIRECTORY "${EXTERN_DIR}")
+        add_subdirectory("${EXTERN_DIR}")
+    endif ()
+endforeach ()

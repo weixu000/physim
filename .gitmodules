@@ -1,3 +1,6 @@
 [submodule "extern/glpp"]
 	path = extern/glpp
 	url = https://github.com/weixu000/glpp.git
+[submodule "extern/binary-embedder"]
+	path = extern/binary-embedder
+	url = https://github.com/weixu000/binary-embedder.git

@@ -8,6 +8,7 @@
 #include <glpp/program.hpp>
 #include <glpp/vertexarray.hpp>
 #include <memory>
+#include <shaders.hpp>
 
 #include "Camera.hpp"
 
@@ -15,31 +16,6 @@ using namespace glm;
 using namespace glpp;
 
 namespace {
-const auto vertex_src = R"(
-#version 450
-
-layout (location = 0) in vec3 position;
-
-uniform mat4 projection;
-uniform mat4 view;
-uniform mat4 world;
-
-void main() {
-    gl_Position = projection * view * world * vec4(position, 1.0);
-}
-)";
-const auto fragment_src = R"(
-#version 450
-
-uniform vec3 color;
-
-out vec4 fragColor;
-
-void main() {
-    fragColor = vec4(color, 1.0f);
-}
-)";
-
 std::unique_ptr<VertexArray> vao;
 std::unique_ptr<Program> program;
 }  // namespace
@@ -59,8 +35,10 @@ Axes::Axes() {
     vao->AttribBinding(0, 0);
     vao->AttribFormat<vec3>(0, 0);
 
-    program = std::make_unique<Program>(Shader(VERTEX_SHADER, vertex_src),
-                                        Shader(FRAGMENT_SHADER, fragment_src));
+    program = std::make_unique<Program>(
+        Shader(VERTEX_SHADER, std::string(axes_vert.begin(), axes_vert.end())),
+        Shader(FRAGMENT_SHADER,
+               std::string(axes_frag.begin(), axes_frag.end())));
   }
 }
 
