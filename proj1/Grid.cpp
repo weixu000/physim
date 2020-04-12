@@ -1,6 +1,7 @@
 #include "Grid.hpp"
 
 #include <glm/gtx/component_wise.hpp>
+#include <glm/gtx/matrix_operation.hpp>
 
 using namespace glm;
 
@@ -134,6 +135,7 @@ void Grid::DeformTetrahedra() {
   for (size_t t = 0; t < tetrahedra_.size(); ++t) {
     const auto& tt = tetrahedra_[t];
     const auto F = GetTetrahedralFrame(vertices_[t]) * tt.R_inv;
+    assert(abs(determinant(F) - 1) < .2f);  // Cannot change volume too much
     const auto F_v = GetTetrahedralVelocity(vertices_[t]) * tt.R_inv;
     const auto epsilon = (transpose(F) * F - I) / 2.f;
     const auto epsilon_rate = (transpose(F) * F_v + transpose(F_v) * F);
@@ -141,8 +143,10 @@ void Grid::DeformTetrahedra() {
         2 * mu_ * epsilon +
         lambda_ * (epsilon[0][0] + epsilon[1][1] + epsilon[2][2]) * I +
         epsilon_rate * eta_;
+    const auto trans_sigma =
+        sigma * adjugate(F);  // glm::adjugate is indeed cofactor
     for (int i = 0; i < 4; ++i) {
-      particles_[vertices_[t][i]].force += sigma * tt.rest_n[i];
+      particles_[vertices_[t][i]].force += trans_sigma * tt.rest_n[i];
     }
   }
 }
