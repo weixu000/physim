@@ -33,10 +33,11 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods) {
   }
 }
 
-Grid grid({0.5, 1., 0.5}, {.5, .5, .5}, {4, 4, 4}, 200.f, .4f, .5f);
-const auto time_step = 5E-3f;
+Grid grid({0.5, 2., 0.5}, {.5, .5, .5}, {4, 4, 4}, 100.f, .4f, 1.f);
+const auto time_step = 1E-3f;
 
 auto wireframe = false;
+auto simulating = false;
 
 void KeyCallback(GLFWwindow *window, int key, int scancode, int action,
                  int mods) {
@@ -54,8 +55,8 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action,
     camera.right_ = action != GLFW_RELEASE;
     break;
   }
-  if (key == GLFW_KEY_SPACE && action != GLFW_RELEASE) {
-    grid.Update(time_step);
+  if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+    simulating = !simulating;
   }
   if (key == GLFW_KEY_C && action == GLFW_PRESS) {
     wireframe = !wireframe;
@@ -103,12 +104,17 @@ int main() {
   glClearColor(0.f, 0.f, 0.f, 0.f);
   glEnable(GL_DEPTH_TEST);
   while (!glfwWindowShouldClose(window)) {
+    const auto dt = glfwGetTime() - last_time;
+    last_time = glfwGetTime();
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    const auto dt = glfwGetTime() - last_time;
     camera.Update(dt);
+    // Do multiple physical simulation in one render loop
+    for (auto ddt = dt; simulating && ddt > 0.f; ddt -= time_step) {
+      grid.Update(time_step);
+    }
     renderer.Update(grid.Particles());
-    last_time = glfwGetTime();
 
     axes.Draw(camera);
     if (wireframe) {
