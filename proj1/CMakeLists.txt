@@ -11,6 +11,6 @@ add_binary_bundle(shaders
         NAME grid_phong_frag PATH "shaders/grid_pong.frag")
 
 add_executable(proj1 ${PROJ1_SOURCES} ${PROJ1_HEADERS})
-target_link_libraries(proj1 PRIVATE glpp glfw glm shaders)
+target_link_libraries(proj1 PRIVATE glpp glfw glm shaders imgui)
 #target_compile_options(proj1 PRIVATE -pg)
 #target_link_options(proj1 PRIVATE -pg)
