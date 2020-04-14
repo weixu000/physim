@@ -28,7 +28,7 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods) {
     if (action == GLFW_PRESS) {
       camera.OnMouseButtonPress(x, y);
     } else {
-      camera.OnMouseButtonRelease(x, y);
+      camera.OnMouseButtonRelease();
     }
   }
 }
@@ -84,7 +84,7 @@ GLFWwindow *Initialize() {
   glfwMakeContextCurrent(window);
   glfwSwapInterval(1);
 
-  // globjects setup
+  // glad setup
   if (gladLoadGL() == 0) {
     glfwTerminate();
     exit(EXIT_FAILURE);

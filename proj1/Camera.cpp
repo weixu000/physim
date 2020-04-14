@@ -48,4 +48,4 @@ void Camera::OnMouseButtonPress(float x, float y) {
   previous_ = vec2(x / width_, y / height_);
 }
 
-void Camera::OnMouseButtonRelease(float x, float y) { rotating_ = false; }
+void Camera::OnMouseButtonRelease() { rotating_ = false; }

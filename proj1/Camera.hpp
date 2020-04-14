@@ -14,7 +14,7 @@ public:
 
   void OnMouseButtonPress(float x, float y);
 
-  void OnMouseButtonRelease(float x, float y);
+  void OnMouseButtonRelease();
 
   [[nodiscard]] const glm::mat4 &Projection() const { return projection_; }
 
