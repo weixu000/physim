@@ -10,6 +10,8 @@ class Particle;
 
 class GridRenderer {
 public:
+  GridRenderer() = default;
+
   explicit GridRenderer(const std::vector<Particle>& particles,
                         const std::vector<std::array<glm::uint, 4>>& tetra);
 

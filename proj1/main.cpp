@@ -25,20 +25,21 @@ auto E = 100.f, nu = .4f, eta = 1.f;
 Grid grid(translation, yaw_pitch_roll, cell, size, E, nu, eta);
 auto time_step = 1E-3f;
 
-std::unique_ptr<GridRenderer> renderer;
+GridRenderer renderer;
 
 void Restart() {
   grid = Grid(translation, yaw_pitch_roll, cell, size, E, nu, eta);
-  renderer =
-      std::make_unique<GridRenderer>(grid.Particles(), grid.ParticleIndices());
+  renderer = GridRenderer(grid.Particles(), grid.ParticleIndices());
 }
 
 auto wireframe = false;
 auto simulating = false;
 
 void FramebufferSizeCallback(GLFWwindow *, int width, int height) {
-  glViewport(0, 0, width, height);
-  camera.Resize(width, height);
+  if (width && height) {
+    glViewport(0, 0, width, height);
+    camera.Resize(width, height);
+  }
 }
 
 void CursorPosCallback(GLFWwindow *, double x, double y) {
@@ -197,8 +198,7 @@ int main() {
   const auto window = Initialize();
 
   Axes axes;
-  renderer =
-      std::make_unique<GridRenderer>(grid.Particles(), grid.ParticleIndices());
+  renderer = GridRenderer(grid.Particles(), grid.ParticleIndices());
 
   auto last_time = glfwGetTime();
 
@@ -216,13 +216,13 @@ int main() {
     for (auto ddt = dt; simulating && ddt > 0.f; ddt -= time_step) {
       grid.Update(time_step);
     }
-    renderer->Update(grid.Particles());
+    renderer.Update(grid.Particles());
 
     axes.Draw(camera);
     if (wireframe) {
-      renderer->DrawTetrahedra(camera);
+      renderer.DrawTetrahedra(camera);
     } else {
-      renderer->DrawSurface(camera);
+      renderer.DrawSurface(camera);
     }
 
     RenderUI();
