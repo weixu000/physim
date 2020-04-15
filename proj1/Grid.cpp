@@ -67,14 +67,6 @@ void Grid::LinkTetrahedra() {
   for (auto& p : particles_) {
     p.force = p.mass * Particle::g;
   }
-#ifndef NDEBUG
-  // Mass is correct
-  auto mass = 0.f;
-  for (const auto& p : particles_) {
-    mass += p.mass;
-  }
-  assert(mass / (density_ * compMul(cell_ * vec3(size_))) - 1 < 1E-3f);
-#endif
 }
 
 void Grid::AddTetrahedron(const glm::uvec3& v0, const glm::uvec3& v1,
