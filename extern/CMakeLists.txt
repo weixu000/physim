@@ -15,5 +15,5 @@ set(IMGUI_IMPL_GLFW "${IMGUI_ROOT}/examples/imgui_impl_glfw.cpp" "${IMGUI_ROOT}/
 set(IMGUI_IMPL_OPENGL "${IMGUI_ROOT}/examples/imgui_impl_opengl3.cpp" "${IMGUI_ROOT}/examples/imgui_impl_opengl3.h")
 add_library(imgui STATIC ${IMGUI_SOURCES} ${IMGUI_IMPL_GLFW} ${IMGUI_IMPL_OPENGL})
 target_include_directories(imgui PUBLIC ${IMGUI_ROOT} ${IMGUI_ROOT}/examples)
-target_link_libraries(imgui PUBLIC glad::glad glfw)
+target_link_libraries(imgui PUBLIC glad glfw)
 target_compile_definitions(imgui PRIVATE IMGUI_IMPL_OPENGL_LOADER_GLAD)
