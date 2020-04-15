@@ -138,7 +138,7 @@ void Grid::DeformTetrahedra() {
     assert(abs(determinant(F) - 1) < .2f);  // Cannot change volume too much
     const auto F_v = GetTetrahedralVelocity(vertices_[t]) * tt.R_inv;
     const auto epsilon = (transpose(F) * F - I) / 2.f;
-    const auto epsilon_rate = (transpose(F) * F_v + transpose(F_v) * F);
+    const auto epsilon_rate = (transpose(F) * F_v + transpose(F_v) * F) / 2.f;
     const auto sigma =
         2 * mu_ * epsilon +
         lambda_ * (epsilon[0][0] + epsilon[1][1] + epsilon[2][2]) * I +
