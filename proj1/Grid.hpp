@@ -8,8 +8,9 @@
 
 class Grid {
 public:
-  Grid(const glm::vec3& origin, const glm::vec3& cell, const glm::uvec3& size,
-       float E, float nu, float eta, float density = 1.f);
+  Grid(const glm::vec3& translation, const glm::vec3& yaw_pitch_roll,
+       const glm::vec3& cell, const glm::uvec3& size, float E, float nu,
+       float eta, float density = 1.f);
 
   void Update(float dt);
 
@@ -18,6 +19,13 @@ public:
   using Indices = std::array<glm::uint, 4>;  // Tetrahedron 4 indices
 
   const std::vector<Indices>& ParticleIndices() const { return vertices_; }
+
+  void SetElasticParams(float E, float nu) {
+    lambda_ = E * nu / (1 + nu) / (1 - 2 * nu);
+    mu_ = E / 2 / (1 + nu);
+  }
+
+  void SetDamping(float eta) { eta_ = eta; }
 
 private:
   struct Tetrahedron {
@@ -28,7 +36,8 @@ private:
   /**
    * Fill particles_
    */
-  void SetupGrid();
+  void SetupGrid(const glm::vec3& translation, const glm::vec3& yaw_pitch_roll,
+                 const glm::vec3& cell);
 
   /**
    * Loop each cell and create 5 tetrahedra by calling AddTetrahedron()
@@ -50,9 +59,6 @@ private:
    * Compute strain-stress relationship
    */
   void DeformTetrahedra();
-
-  // Geometry parameters
-  glm::vec3 origin_, cell_;
 
   // Grid parameters
   glm::uvec3 size_, stride_;

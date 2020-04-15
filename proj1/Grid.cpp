@@ -1,33 +1,36 @@
 #include "Grid.hpp"
 
 #include <glm/gtx/component_wise.hpp>
+#include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/matrix_operation.hpp>
+#include <glm/gtx/transform.hpp>
 
 using namespace glm;
 
-Grid::Grid(const glm::vec3& origin, const glm::vec3& cell,
-           const glm::uvec3& size, float E, float nu, float eta, float density)
-    : origin_(origin),
-      cell_(cell),
-      size_(size + 1U),
-      eta_(eta),
-      density_(density) {
+Grid::Grid(const glm::vec3& translation, const glm::vec3& yaw_pitch_roll,
+           const glm::vec3& cell, const glm::uvec3& size, float E, float nu,
+           float eta, float density)
+    : size_(size + 1U), eta_(eta), density_(density) {
   stride_ = vec3(size_.y * size_.z, size_.z, 1);
 
-  lambda_ = E * nu / (1 + nu) / (1 - 2 * nu);
-  mu_ = E / 2 / (1 + nu);
+  SetElasticParams(E, nu);
 
-  SetupGrid();
+  SetupGrid(translation, radians(yaw_pitch_roll), cell);
   LinkTetrahedra();
 }
 
-void Grid::SetupGrid() {
+void Grid::SetupGrid(const glm::vec3& translation,
+                     const glm::vec3& yaw_pitch_roll, const glm::vec3& cell) {
+  const auto transform =
+      translate(translation) *
+      yawPitchRoll(yaw_pitch_roll.x, yaw_pitch_roll.y, yaw_pitch_roll.z) *
+      translate(-vec3(size_ - 1U) * cell / 2.f) * scale(cell);
   for (unsigned i = 0; i < size_.x; ++i) {
     for (unsigned j = 0; j < size_.y; ++j) {
       for (unsigned k = 0; k < size_.z; ++k) {
         const auto index = uvec3(i, j, k);
         Particle p;
-        p.pos = vec3(index) * cell_ + origin_;
+        p.pos = transform * vec4(vec3(index), 1.f);
         p.vel = vec3(0.f);
         // Computed later
         p.force = vec3(0.f);
@@ -135,7 +138,6 @@ void Grid::DeformTetrahedra() {
   for (size_t t = 0; t < tetrahedra_.size(); ++t) {
     const auto& tt = tetrahedra_[t];
     const auto F = GetTetrahedralFrame(vertices_[t]) * tt.R_inv;
-    assert(abs(determinant(F) - 1) < .2f);  // Cannot change volume too much
     const auto F_v = GetTetrahedralVelocity(vertices_[t]) * tt.R_inv;
     const auto epsilon = (transpose(F) * F - I) / 2.f;
     const auto epsilon_rate = (transpose(F) * F_v + transpose(F_v) * F) / 2.f;

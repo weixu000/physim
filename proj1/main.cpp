@@ -41,11 +41,13 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods) {
   }
 }
 
-auto origin = glm::vec3(.5f, 2.f, .5f);
+auto translation = glm::vec3(.5f, 2.f, .5f);
+auto yaw_pitch_roll = glm::vec3(0.f, 0.f, 0.f);
 auto cell = glm::vec3(.5f, .5f, .5f);
 auto size = glm::uvec3(4, 4, 4);
+auto E = 100.f, nu = .4f, eta = 1.f;
 
-Grid grid(origin, cell, size, 100.f, .4f, 1.f);
+Grid grid(translation, yaw_pitch_roll, cell, size, E, nu, eta);
 auto time_step = 1E-3f;
 
 std::unique_ptr<GridRenderer> renderer;
@@ -143,7 +145,7 @@ void RenderUI() {
   ImGui::InputFloat3("Cell size", glm::value_ptr(cell));
   ImGui::InputInt3("Grid size", reinterpret_cast<int *>(glm::value_ptr(size)));
   if (ImGui::Button("Restart")) {
-    grid = Grid(origin, cell, size, 100.f, .4f, 1.f);
+    grid = Grid(translation, yaw_pitch_roll, cell, size, E, nu, eta);
     renderer = std::make_unique<GridRenderer>(grid.Particles(),
                                               grid.ParticleIndices());
   }
