@@ -27,6 +27,12 @@ auto time_step = 1E-3f;
 
 std::unique_ptr<GridRenderer> renderer;
 
+void Restart() {
+  grid = Grid(translation, yaw_pitch_roll, cell, size, E, nu, eta);
+  renderer =
+      std::make_unique<GridRenderer>(grid.Particles(), grid.ParticleIndices());
+}
+
 auto wireframe = false;
 auto simulating = false;
 
@@ -58,6 +64,7 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods) {
 void KeyCallback(GLFWwindow *window, int key, int scancode, int action,
                  int mods) {
   if (ImGui::GetIO().WantCaptureKeyboard) {
+    camera.forward_ = camera.left_ = camera.backward_ = camera.right_ = false;
     return;
   }
   switch (key) {
@@ -79,6 +86,9 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action,
   }
   if (key == GLFW_KEY_C && action == GLFW_PRESS) {
     wireframe = !wireframe;
+  }
+  if (key == GLFW_KEY_R && action == GLFW_PRESS) {
+    Restart();
   }
   if (key == GLFW_KEY_ENTER && action == GLFW_REPEAT) {
     grid.Update(time_step);
@@ -148,6 +158,10 @@ void RenderUI() {
   if (ImGui::Button("Step (Enter)")) {
     grid.Update(time_step);
   }
+  ImGui::SameLine();
+  if (ImGui::Button("Restart (R)")) {
+    Restart();
+  }
   ImGui::Separator();
   if (ImGui::SliderFloat3("Origin translation", glm::value_ptr(translation),
                           0.f, 10.f) |
@@ -155,11 +169,8 @@ void RenderUI() {
                           -180.f, 180.f) |
       ImGui::SliderFloat3("Cell size", glm::value_ptr(cell), .1f, 1.f) |
       ImGui::SliderInt3("Grid size",
-                        reinterpret_cast<int *>(glm::value_ptr(size)), 1, 10) |
-      ImGui::Button("Restart")) {
-    grid = Grid(translation, yaw_pitch_roll, cell, size, E, nu, eta);
-    renderer = std::make_unique<GridRenderer>(grid.Particles(),
-                                              grid.ParticleIndices());
+                        reinterpret_cast<int *>(glm::value_ptr(size)), 1, 10)) {
+    Restart();
   }
   ImGui::Separator();
   ImGui::SliderFloat("Time step", &time_step, .0001f,
