@@ -27,6 +27,8 @@ public:
 
   void SetDamping(float eta) { eta_ = eta; }
 
+  bool GetError() const { return error_; }
+
 private:
   struct Tetrahedron {
     std::array<glm::vec3, 4> rest_n;
@@ -69,4 +71,7 @@ private:
   // Material parameters
   float mu_, lambda_, eta_;
   float density_;
+
+  // Error
+  bool error_ = false;
 };

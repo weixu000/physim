@@ -1,5 +1,6 @@
 #include "Grid.hpp"
 
+#include <glm/gtx/compatibility.hpp>
 #include <glm/gtx/component_wise.hpp>
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/matrix_operation.hpp>
@@ -120,7 +121,11 @@ void Grid::Update(float dt) {
   DeformTetrahedra();
 
   for (auto& p : particles_) {
-    p.Update(dt);
+    if (all(isfinite(p.force))) {
+      p.Update(dt);
+    } else {
+      error_ = true;
+    }
   }
 }
 

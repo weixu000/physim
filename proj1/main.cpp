@@ -149,6 +149,9 @@ void RenderUI() {
 
   ImGui::Begin("Control", nullptr);
   ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+  if (grid.GetError()) {
+    ImGui::Text("Grid blown up");
+  }
   ImGui::Separator();
   ImGui::Text("W, A, S, D to move camera");
   ImGui::Text("Hold left mouse button to rotate camera");
