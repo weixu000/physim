@@ -9,12 +9,14 @@ uniform mat4 projection;
 uniform mat4 view;
 
 out vec3 vPos;
-out vec3 vVec;
+out vec3 vAcc;
+out vec3 vVel;
 out vec3 vColor;
 
 void main() {
     gl_Position = view * vec4(pos, 1.0);
     vPos = pos;
-    vVec = force / mass / 9.8 / 10;
+    vAcc = force / mass / 9.8 / 10;
+    vVel = vel / 5;
     vColor = vec3(1.0);
 }
