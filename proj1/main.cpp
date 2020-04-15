@@ -80,6 +80,9 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action,
   if (key == GLFW_KEY_C && action == GLFW_PRESS) {
     wireframe = !wireframe;
   }
+  if (key == GLFW_KEY_ENTER && action == GLFW_REPEAT) {
+    grid.Update(time_step);
+  }
 }
 
 GLFWwindow *Initialize() {
@@ -129,29 +132,45 @@ void RenderUI() {
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
 
-  static auto show_demo_window = true;
+  static auto show_demo_window = false;
   if (show_demo_window) {
     ImGui::ShowDemoWindow(&show_demo_window);
   }
 
   ImGui::Begin("Control", nullptr);
+  ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+  ImGui::Separator();
   ImGui::Text("W, A, S, D to move camera");
   ImGui::Text("Hold left mouse button to rotate camera");
+  ImGui::Checkbox("ImGui Demo", &show_demo_window);
   ImGui::Checkbox("Draw wireframe (C)", &wireframe);
   ImGui::Checkbox("Simulate (Space)", &simulating);
-  ImGui::Checkbox("ImGui Demo", &show_demo_window);
+  if (ImGui::Button("Step (Enter)")) {
+    grid.Update(time_step);
+  }
   ImGui::Separator();
-  ImGui::InputFloat3("Origin position", glm::value_ptr(origin));
-  ImGui::InputFloat3("Cell size", glm::value_ptr(cell));
-  ImGui::InputInt3("Grid size", reinterpret_cast<int *>(glm::value_ptr(size)));
-  if (ImGui::Button("Restart")) {
+  if (ImGui::SliderFloat3("Origin translation", glm::value_ptr(translation),
+                          0.f, 10.f) |
+      ImGui::SliderFloat3("Origin rotation", glm::value_ptr(yaw_pitch_roll),
+                          -180.f, 180.f) |
+      ImGui::SliderFloat3("Cell size", glm::value_ptr(cell), .1f, 1.f) |
+      ImGui::SliderInt3("Grid size",
+                        reinterpret_cast<int *>(glm::value_ptr(size)), 1, 10) |
+      ImGui::Button("Restart")) {
     grid = Grid(translation, yaw_pitch_roll, cell, size, E, nu, eta);
     renderer = std::make_unique<GridRenderer>(grid.Particles(),
                                               grid.ParticleIndices());
   }
   ImGui::Separator();
-  ImGui::SliderFloat("Time step", &time_step, .01f / ImGui::GetIO().Framerate,
+  ImGui::SliderFloat("Time step", &time_step, .0001f,
                      1 / ImGui::GetIO().Framerate, "%.4f");
+  if (ImGui::SliderFloat("Young's modulus", &E, 1.f, 2000.f) |
+      ImGui::SliderFloat("Poisson's ratio", &nu, -.9f, .49f)) {
+    grid.SetElasticParams(E, nu);
+  }
+  if (ImGui::SliderFloat("Viscosity", &eta, 0.f, 150.f)) {
+    grid.SetDamping(eta);
+  }
   ImGui::End();
 
   ImGui::Render();
