@@ -1,10 +1,4 @@
 #include <glad/glad.h>
-
-#include "Axes.hpp"
-#include "Camera.hpp"
-#include "Grid.hpp"
-#include "GridRenderer.hpp"
-
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <imgui.h>
@@ -14,7 +8,27 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "Axes.hpp"
+#include "Camera.hpp"
+#include "Grid.hpp"
+#include "GridRenderer.hpp"
+
+namespace {
 Camera camera({-2, 1, -2}, {0, 0, 0}, 640, 480);
+
+auto translation = glm::vec3(.5f, 2.f, .5f);
+auto yaw_pitch_roll = glm::vec3(0.f, 0.f, 0.f);
+auto cell = glm::vec3(.5f, .5f, .5f);
+auto size = glm::uvec3(4, 4, 4);
+auto E = 100.f, nu = .4f, eta = 1.f;
+
+Grid grid(translation, yaw_pitch_roll, cell, size, E, nu, eta);
+auto time_step = 1E-3f;
+
+std::unique_ptr<GridRenderer> renderer;
+
+auto wireframe = false;
+auto simulating = false;
 
 void FramebufferSizeCallback(GLFWwindow *, int width, int height) {
   glViewport(0, 0, width, height);
@@ -40,20 +54,6 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods) {
     }
   }
 }
-
-auto translation = glm::vec3(.5f, 2.f, .5f);
-auto yaw_pitch_roll = glm::vec3(0.f, 0.f, 0.f);
-auto cell = glm::vec3(.5f, .5f, .5f);
-auto size = glm::uvec3(4, 4, 4);
-auto E = 100.f, nu = .4f, eta = 1.f;
-
-Grid grid(translation, yaw_pitch_roll, cell, size, E, nu, eta);
-auto time_step = 1E-3f;
-
-std::unique_ptr<GridRenderer> renderer;
-
-auto wireframe = false;
-auto simulating = false;
 
 void KeyCallback(GLFWwindow *window, int key, int scancode, int action,
                  int mods) {
@@ -176,6 +176,8 @@ void RenderUI() {
   ImGui::Render();
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
+
+}  // namespace
 
 int main() {
   const auto window = Initialize();
