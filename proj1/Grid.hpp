@@ -8,6 +8,8 @@
 
 class Grid {
 public:
+  Grid() = default;
+
   Grid(const glm::vec3& translation, const glm::vec3& yaw_pitch_roll,
        const glm::vec3& cell, const glm::uvec3& size, float E, float nu,
        float eta, float density = 1.f);

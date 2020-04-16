@@ -20,15 +20,14 @@ auto translation = glm::vec3(.5f, 2.f, .5f);
 auto yaw_pitch_roll = glm::vec3(0.f, 0.f, 0.f);
 auto cell = glm::vec3(.5f, .5f, .5f);
 auto size = glm::uvec3(4, 4, 4);
-auto E = 100.f, nu = .4f, eta = 1.f;
-
-Grid grid(translation, yaw_pitch_roll, cell, size, E, nu, eta);
+auto E = 100.f, nu = .4f, eta = 1.f, density = 1.f;
 auto time_step = 1E-3f;
 
+Grid grid;
 GridRenderer renderer;
 
 void Restart() {
-  grid = Grid(translation, yaw_pitch_roll, cell, size, E, nu, eta);
+  grid = Grid(translation, yaw_pitch_roll, cell, size, E, nu, eta, density);
   renderer = GridRenderer(grid.Particles(), grid.ParticleIndices());
 }
 
@@ -103,7 +102,8 @@ GLFWwindow *Initialize() {
   }
 
   // GLFW window
-  const auto window = glfwCreateWindow(640, 480, "My Title", nullptr, nullptr);
+  const auto window =
+      glfwCreateWindow(640, 480, "Solid Mechanics", nullptr, nullptr);
   if (!window) {
     glfwTerminate();
     exit(EXIT_FAILURE);
@@ -173,17 +173,18 @@ void RenderUI() {
                           -180.f, 180.f) |
       ImGui::SliderFloat3("Cell size", glm::value_ptr(cell), .1f, 1.f) |
       ImGui::SliderInt3("Grid size",
-                        reinterpret_cast<int *>(glm::value_ptr(size)), 1, 10)) {
+                        reinterpret_cast<int *>(glm::value_ptr(size)), 1, 10) |
+      ImGui::SliderFloat("Density", &density, .1f, 50.f)) {
     Restart();
   }
   ImGui::Separator();
-  ImGui::SliderFloat("Time step", &time_step, .0001f,
-                     1 / ImGui::GetIO().Framerate, "%.4f");
-  if (ImGui::SliderFloat("Young's modulus", &E, 1.f, 2000.f) |
+  ImGui::SliderFloat("Time step", &time_step, .0001f, .01f, "%.4f");
+  ImGui::SliderFloat("Friction", &Particle::mu, 0.f, 1.f);
+  if (ImGui::SliderFloat("Young's modulus", &E, 1.f, 1000.f) |
       ImGui::SliderFloat("Poisson's ratio", &nu, -.9f, .49f)) {
     grid.SetElasticParams(E, nu);
   }
-  if (ImGui::SliderFloat("Viscosity", &eta, 0.f, 150.f)) {
+  if (ImGui::SliderFloat("Viscosity", &eta, 0.f, 100.f)) {
     grid.SetDamping(eta);
   }
   ImGui::End();
@@ -198,7 +199,7 @@ int main() {
   const auto window = Initialize();
 
   Axes axes;
-  renderer = GridRenderer(grid.Particles(), grid.ParticleIndices());
+  Restart();
 
   auto last_time = glfwGetTime();
 
