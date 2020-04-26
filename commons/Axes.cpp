@@ -2,13 +2,13 @@
 
 #include <glad/glad.h>
 
+#include <common_shaders.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtx/euler_angles.hpp>
 #include <glpp/buffer.hpp>
 #include <glpp/program.hpp>
 #include <glpp/vertexarray.hpp>
 #include <memory>
-#include <shaders.hpp>
 
 #include "Camera.hpp"
 

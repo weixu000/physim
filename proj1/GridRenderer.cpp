@@ -5,7 +5,7 @@
 #include <glpp/buffer.hpp>
 #include <glpp/program.hpp>
 #include <glpp/vertexarray.hpp>
-#include <shaders.hpp>
+#include <proj1_shaders.hpp>
 
 #include "Camera.hpp"
 #include "Particle.hpp"

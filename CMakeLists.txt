@@ -9,4 +9,5 @@ find_package(glfw3 REQUIRED)
 find_package(glm REQUIRED)
 
 add_subdirectory(extern)
+add_subdirectory(commons)
 add_subdirectory(proj1)
