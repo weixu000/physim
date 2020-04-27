@@ -6,7 +6,7 @@
 #include <vector>
 
 class Camera;
-class Particle;
+struct Particle;
 
 class GridRenderer {
 public:
