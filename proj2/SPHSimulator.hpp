@@ -23,6 +23,8 @@ public:
 
   const ParticleSystem& GetParticles() const { return system_; }
 
+  glm::vec3 GetBox() const { return {box_x_, 10.f, box_z_}; }
+
 private:
   void InitializeMass();
 

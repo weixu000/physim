@@ -153,7 +153,7 @@ int main() {
       SPHSimulator({-3.f, -3.f, -3.f}, {5.f, 5.f, 5.f}, [](const glm::vec3 &x) {
         return glm::distance(x, glm::vec3(0.f, 2.f, 0.f)) <= .8f;
       });
-  renderer = SPHRenderer(simulator.GetParticles());
+  renderer = SPHRenderer(simulator.GetParticles(), simulator.GetBox());
 
   auto last_time = glfwGetTime();
 

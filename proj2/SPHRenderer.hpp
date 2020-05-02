@@ -13,7 +13,7 @@ class SPHRenderer {
 public:
   SPHRenderer() = default;
 
-  explicit SPHRenderer(const ParticleSystem& system);
+  SPHRenderer(const ParticleSystem& system, const glm::vec3& box);
 
   void Update(const ParticleSystem& system);
 
@@ -24,4 +24,5 @@ private:
 
   std::unique_ptr<glpp::Buffer> vbo_;
   std::unique_ptr<glpp::VertexArray> vao_;
+  std::unique_ptr<glpp::VertexArray> box_vao_;
 };
