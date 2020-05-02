@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
@@ -11,6 +12,11 @@ class SPHSimulator {
 public:
   SPHSimulator() = default;
 
+  using ShapeIndicator = std::function<bool(const glm::vec3&)>;
+
+  SPHSimulator(const glm::vec3& min_bound, const glm::vec3& max_bound,
+               const ShapeIndicator& indicator);
+
   SPHSimulator(const glm::uvec3& size);
 
   void Update(float dt);
@@ -18,6 +24,8 @@ public:
   const ParticleSystem& GetParticles() const { return system_; }
 
 private:
+  void InitializeMass();
+
   float f(float q) const {
     const auto c = 3.f / 2 / glm::pi<float>();
     if (q < 1) {

@@ -6,6 +6,31 @@
 
 using namespace glm;
 
+SPHSimulator::SPHSimulator(const glm::vec3& min_bound,
+                           const glm::vec3& max_bound,
+                           const ShapeIndicator& indicator) {
+  auto sample = min_bound;
+  for (sample.x = min_bound.x; sample.x < max_bound.x; sample.x += h) {
+    for (sample.y = min_bound.y; sample.y < max_bound.y; sample.y += h) {
+      for (sample.z = min_bound.z; sample.z < max_bound.z; sample.z += h) {
+        if (indicator(sample)) {
+          Particle p;
+          p.p = sample;
+          p.v = p.f = vec3(0.f);
+          p.rho = rho_0;
+          p.m = pow(h, 3) * rho_0;  // Initial mass
+          system_.Add(p);
+        }
+      }
+    }
+  }
+  std::cout << "Number of particles: " << system_.Size() << std::endl;
+
+  pressure_.resize(system_.Size());
+
+  InitializeMass();
+}
+
 SPHSimulator::SPHSimulator(const glm::uvec3& size) {
   const auto transform = translate(vec3(0.f, 2.f, 0.f)) *
                          translate(-vec3(size - 1U) * h / 2.f) * scale(vec3(h));
@@ -22,7 +47,12 @@ SPHSimulator::SPHSimulator(const glm::uvec3& size) {
       }
     }
   }
+  pressure_.resize(system_.Size());
 
+  InitializeMass();
+}
+
+void SPHSimulator::InitializeMass() {
   // Iteratively solve mass to correct initial density
   search_.Update(system_, 2 * h);
   for (;;) {
@@ -48,8 +78,6 @@ SPHSimulator::SPHSimulator(const glm::uvec3& size) {
       system_[i].m = (rho_0 - rho) / W(i, i);
     }
   }
-
-  pressure_.resize(system_.Size());
 }
 
 void SPHSimulator::Update(float dt) {

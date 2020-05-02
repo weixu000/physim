@@ -1,4 +1,5 @@
 #include <glad/glad.h>
+
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <imgui.h>
@@ -18,7 +19,6 @@ Camera camera({-2, 1, -2}, {0, 0, 0}, 640, 480);
 SPHRenderer renderer;
 SPHSimulator simulator;
 
-const auto size = glm::uvec3(15, 15, 15);
 const auto time_step = 1E-3f;
 
 auto simulating = false;
@@ -149,7 +149,10 @@ int main() {
   const auto window = Initialize();
 
   Axes axes;
-  simulator = SPHSimulator(size);
+  simulator =
+      SPHSimulator({-3.f, -3.f, -3.f}, {5.f, 5.f, 5.f}, [](const glm::vec3 &x) {
+        return glm::distance(x, glm::vec3(0.f, 2.f, 0.f)) <= .8f;
+      });
   renderer = SPHRenderer(simulator.GetParticles());
 
   auto last_time = glfwGetTime();
