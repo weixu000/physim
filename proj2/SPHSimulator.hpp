@@ -68,7 +68,7 @@ private:
   template <typename T>
   auto Value(size_t i, T a) const {
     decltype(a(0)) ret{0.f};
-    for (const auto j : search_.neighbor[i]) {
+    for (const auto j : search_.neighbors[i]) {
       ret += system_[j].m / system_[j].rho * a(j) * W(i, j);
     }
     return ret;
@@ -77,7 +77,7 @@ private:
   template <typename T>
   glm::vec3 Grad(size_t i, T a) const {
     glm::vec3 ret{0.f};
-    for (const auto j : search_.neighbor[i]) {
+    for (const auto j : search_.neighbors[i]) {
       ret += system_[j].m *
              (a(i) / pow(system_[i].rho, 2) + a(j) / pow(system_[j].rho, 2)) *
              DelW(i, j);
@@ -88,7 +88,7 @@ private:
   template <typename T>
   auto Laplace(size_t i, T a) const {
     decltype(a(0)) ret{0.f};
-    for (const auto j : search_.neighbor[i]) {
+    for (const auto j : search_.neighbors[i]) {
       const auto x_ij = system_[i].p - system_[j].p;
       ret += system_[j].m / system_[j].rho * (a(i) - a(j)) *
              glm::dot(x_ij, DelW(i, j)) /

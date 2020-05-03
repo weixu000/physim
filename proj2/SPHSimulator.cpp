@@ -26,6 +26,7 @@ SPHSimulator::SPHSimulator(const glm::vec3& min_bound,
   }
   std::cout << "Number of particles: " << system_.Size() << std::endl;
 
+  search_ = NeighborSearch(500, system_.Size());
   pressure_.resize(system_.Size());
 
   InitializeMass();
@@ -47,6 +48,8 @@ SPHSimulator::SPHSimulator(const glm::uvec3& size) {
       }
     }
   }
+
+  search_ = NeighborSearch(500, system_.Size());
   pressure_.resize(system_.Size());
 
   InitializeMass();
@@ -71,7 +74,7 @@ void SPHSimulator::InitializeMass() {
     // https://en.wikipedia.org/wiki/Jacobi_method
     for (size_t i = 0; i < system_.Size(); ++i) {
       auto rho = 0.f;
-      for (const auto j : search_.neighbor[i]) {
+      for (const auto j : search_.neighbors[i]) {
         if (j == i) continue;
         rho += system_[j].m * W(i, j);
       }
