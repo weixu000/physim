@@ -23,6 +23,32 @@ SPHSimulator::SPHSimulator(const glm::uvec3& size) {
     }
   }
 
+  // Iteratively solve mass to correct initial density
+  search_.Update(system_, 2 * h);
+  for (;;) {
+    {
+      auto error = -FLT_MAX;
+      for (size_t i = 0; i < system_.Size(); ++i) {
+        error = max(
+            error,
+            abs(Value(i, [this](const size_t j) { return system_[j].rho; }) -
+                rho_0));
+      }
+      std::cout << "Density error: " << error / rho_0 << std::endl;
+      if (error / rho_0 < 1E-3f) break;
+    }
+
+    // https://en.wikipedia.org/wiki/Jacobi_method
+    for (size_t i = 0; i < system_.Size(); ++i) {
+      auto rho = 0.f;
+      for (const auto j : search_.neighbor[i]) {
+        if (j == i) continue;
+        rho += system_[j].m * W(i, j);
+      }
+      system_[i].m = (rho_0 - rho) / W(i, i);
+    }
+  }
+
   pressure_.resize(system_.Size());
 }
 
