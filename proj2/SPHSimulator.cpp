@@ -1,7 +1,5 @@
 #include "SPHSimulator.hpp"
 
-#include <glm/gtx/euler_angles.hpp>
-#include <glm/gtx/transform.hpp>
 #include <iostream>
 
 using namespace glm;
@@ -25,29 +23,6 @@ SPHSimulator::SPHSimulator(const glm::vec3& min_bound,
     }
   }
   std::cout << "Number of particles: " << system_.Size() << std::endl;
-
-  search_ = NeighborSearch(500, system_.Size());
-  pressure_.resize(system_.Size());
-
-  InitializeMass();
-}
-
-SPHSimulator::SPHSimulator(const glm::uvec3& size) {
-  const auto transform = translate(vec3(0.f, 2.f, 0.f)) *
-                         translate(-vec3(size - 1U) * h / 2.f) * scale(vec3(h));
-  for (unsigned i = 0; i < size.x; ++i) {
-    for (unsigned j = 0; j < size.y; ++j) {
-      for (unsigned k = 0; k < size.z; ++k) {
-        const auto index = uvec3(i, j, k);
-        Particle p;
-        p.p = transform * vec4(vec3(index), 1.f);
-        p.v = p.f = vec3(0.f);
-        p.rho = rho_0;
-        p.m = pow(h, 3) * rho_0;  // Initial mass
-        system_.Add(p);
-      }
-    }
-  }
 
   search_ = NeighborSearch(500, system_.Size());
   pressure_.resize(system_.Size());

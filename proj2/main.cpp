@@ -15,7 +15,7 @@
 #include "SPHSimulator.hpp"
 
 namespace {
-Camera camera({-2, 1, -2}, {0, 0, 0}, 640, 480);
+Camera camera({2, 2, 2}, {0, 0, 0}, 640, 480);
 SPHRenderer renderer;
 SPHSimulator simulator;
 
@@ -151,7 +151,7 @@ int main() {
   Axes axes;
   simulator =
       SPHSimulator({-3.f, -3.f, -3.f}, {5.f, 5.f, 5.f}, [](const glm::vec3 &x) {
-        return glm::distance(x, glm::vec3(0.f, 2.f, 0.f)) <= .8f;
+        return glm::distance(x, glm::vec3(0.f, 1.5f, 0.f)) <= .8f;
       });
   renderer = SPHRenderer(simulator.GetParticles(), simulator.GetBox());
 

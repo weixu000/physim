@@ -17,8 +17,6 @@ public:
   SPHSimulator(const glm::vec3& min_bound, const glm::vec3& max_bound,
                const ShapeIndicator& indicator);
 
-  SPHSimulator(const glm::uvec3& size);
-
   void Update(float dt);
 
   const ParticleSystem& GetParticles() const { return system_; }
@@ -103,7 +101,7 @@ private:
 
   std::vector<float> pressure_;
 
-  float h = 0.1f, k = 1119E3f, rho_0 = 1E3f, nu = 2E-4f;
+  float h = 0.1f, k = 1119E3f, rho_0 = 1E3f, nu = 1E-2f;
 
   float box_x_ = 1.f, box_z_ = 1.f, box_stiffness_ = 1E5f;
 };
