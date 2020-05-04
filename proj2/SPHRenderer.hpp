@@ -20,6 +20,9 @@ public:
   void Draw(const Camera& camera);
 
 private:
+  void InitializeParticleVAO(const ParticleSystem& system);
+  void InitializeBoxVAO(const glm::vec3& box);
+
   size_t size_;
 
   std::unique_ptr<glpp::Buffer> vbo_;

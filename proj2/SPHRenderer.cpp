@@ -33,7 +33,11 @@ void Initialize() {
 SPHRenderer::SPHRenderer(const ParticleSystem& system, const glm::vec3& box)
     : size_(system.Size()) {
   Initialize();
+  InitializeParticleVAO(system);
+  InitializeBoxVAO(box);
+}
 
+void SPHRenderer::InitializeParticleVAO(const ParticleSystem& system) {
   vbo_ = std::make_unique<Buffer>();
   vbo_->CreateStorage(system.data, GL_DYNAMIC_STORAGE_BIT);
 
@@ -46,7 +50,9 @@ SPHRenderer::SPHRenderer(const ParticleSystem& system, const glm::vec3& box)
   vao_->AttribFormat<vec3>(2, 2 * sizeof(vec3));
   vao_->AttribFormat<float>(3, 3 * sizeof(vec3));
   vao_->AttribFormat<float>(4, 4 * sizeof(vec3) + sizeof(float));
+}
 
+void SPHRenderer::InitializeBoxVAO(const glm::vec3& box) {
   std::array<vec3, 8> box_vertices = {
       vec3{-box.x, 0, -box.z},     vec3{box.x, 0, -box.z},
       vec3{box.x, 0, box.z},       vec3{-box.x, 0, box.z},
