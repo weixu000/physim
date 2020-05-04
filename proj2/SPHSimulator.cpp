@@ -1,5 +1,6 @@
 #include "SPHSimulator.hpp"
 
+#include <glm/gtx/transform.hpp>
 #include <iostream>
 
 using namespace glm;
@@ -93,4 +94,33 @@ void SPHSimulator::Update(float dt) {
   }
 
   integrator_.Integrate(system_, dt);
+}
+
+const Grid<bool>& SPHSimulator::GetDensityGrid() const {
+  static Grid<bool> grid;
+  if (grid.p.empty()) {
+    const auto resolution = h / 2;
+    grid.size =
+        uvec3(glm::ceil(vec3{2 * box_x_, 10.f, 2 * box_z_} / resolution)) + 1U;
+    grid.p.clear();
+    const auto transform = translate(-vec3(grid.size - 1U) * resolution / 2.f) *
+                           scale(vec3(resolution));
+    for (unsigned i = 0; i < grid.size.x; ++i) {
+      for (unsigned j = 0; j < grid.size.y; ++j) {
+        for (unsigned k = 0; k < grid.size.z; ++k) {
+          const auto index = uvec3(i, j, k);
+          const auto p = vec3(transform * vec4(vec3(index), 1.f));
+          grid.p.push_back(p);
+        }
+      }
+    }
+  }
+  
+  grid.data.clear();
+  for (const auto& p : grid.p) {
+    grid.data.push_back(
+        Value(p, search_.Search(system_, p),
+              [this](const size_t j) { return system_[j].rho; }) > FLT_MIN);
+  }
+  return grid;
 }

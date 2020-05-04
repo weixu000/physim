@@ -24,28 +24,32 @@ void NeighborSearch::Update(const ParticleSystem& system) {
   }
 
   for (size_t i = 0; i < system.Size(); ++i) {
-    neighbors[i].clear();
+    Search(system, system[i].p, neighbors[i]);
+  }
+}
 
-    array<size_t, 27> seen;
-    size_t n_seen = 0;
-    // Loop over 3*3*3 neighboring cells
-    for (int x = -1; x < 2; ++x) {
-      for (int y = -1; y < 2; ++y) {
-        for (int z = -1; z < 2; ++z) {
-          const auto hash =
-              Hash(system[i].p, d_, buckets_.size(), ivec3{x, y, z});
+void NeighborSearch::Search(const ParticleSystem& system, const glm::vec3& p,
+                            std::vector<size_t>& out) const {
+  out.clear();
 
-          // Hash of neighors may be the same, deduplicate
-          if (find(begin(seen), begin(seen) + n_seen, hash) !=
-              begin(seen) + n_seen) {
-            continue;
-          }
-          seen[n_seen++] = hash;
+  array<size_t, 27> seen;
+  size_t n_seen = 0;
+  // Loop over 3*3*3 neighboring cells
+  for (int x = -1; x < 2; ++x) {
+    for (int y = -1; y < 2; ++y) {
+      for (int z = -1; z < 2; ++z) {
+        const auto hash = Hash(p, d_, buckets_.size(), ivec3{x, y, z});
 
-          for (const auto j : buckets_[hash]) {
-            if (length(system[i].p - system[j].p) < d_) {
-              neighbors[i].push_back(j);
-            }
+        // Hash of neighors may be the same, deduplicate
+        if (find(begin(seen), begin(seen) + n_seen, hash) !=
+            begin(seen) + n_seen) {
+          continue;
+        }
+        seen[n_seen++] = hash;
+
+        for (const auto j : buckets_[hash]) {
+          if (length(p - system[j].p) < d_) {
+            out.push_back(j);
           }
         }
       }

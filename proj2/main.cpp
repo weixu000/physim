@@ -107,15 +107,17 @@ int main() {
   Axes axes;
   simulator =
       SPHSimulator({-3.f, -3.f, -3.f}, {5.f, 5.f, 5.f}, [](const glm::vec3 &x) {
-        return glm::distance(x, glm::vec3(0.f, 1.5f, 0.f)) <= .8f;
+        return glm::distance(x, glm::vec3(0.f, 1.f, 0.f)) <= .5f;
       });
-  renderer = SPHRenderer(simulator.GetParticles(), simulator.GetBox());
+  renderer = SPHRenderer(simulator.GetParticles(), simulator.GetBox(),
+                         simulator.GetDensityGrid());
 
   auto last_time = glfwGetTime();
 
   // Rendering
   glClearColor(0.f, 0.f, 0.f, 0.f);
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
   while (!glfwWindowShouldClose(window)) {
     const auto dt = glfwGetTime() - last_time;
     last_time = glfwGetTime();
@@ -124,8 +126,11 @@ int main() {
     glPointSize(5.f);
 
     camera.Update(dt);
-    if (simulating) simulator.Update(time_step);
-    renderer.Update(simulator.GetParticles());
+    if (simulating) {
+      simulator.Update(time_step);
+      renderer.Update(simulator.GetParticles());
+      renderer.UpdateMarchingCubes(simulator.GetDensityGrid());
+    }
 
     axes.Draw(camera);
     renderer.Draw(camera);

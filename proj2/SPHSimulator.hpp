@@ -3,10 +3,19 @@
 #include <functional>
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
+#include <vector>
 
 #include "Integrator.hpp"
 #include "NeighborSearch.hpp"
 #include "ParticleSystem.hpp"
+
+template <typename T>
+struct Grid {
+  std::vector<T> data;
+  std::vector<glm::vec3> p;
+
+  glm::uvec3 size;
+};
 
 class SPHSimulator {
 public:
@@ -22,6 +31,8 @@ public:
   const ParticleSystem& GetParticles() const { return system_; }
 
   glm::vec3 GetBox() const { return {box_x_, 10.f, box_z_}; }
+
+  const Grid<bool>& GetDensityGrid() const;
 
 private:
   void InitializeMass();
@@ -48,10 +59,12 @@ private:
     }
   }
 
-  float W(size_t i, size_t j) const {
-    const auto q = glm::length(system_[i].p - system_[j].p) / h;
+  float W(const glm::vec3& x1, const glm::vec3& x2) const {
+    const auto q = glm::length(x1 - x2) / h;
     return f(q) / pow(h, 3);
   }
+
+  float W(size_t i, size_t j) const { return W(system_[i].p, system_[j].p); }
 
   glm::vec3 DelW(size_t i, size_t j) const {
     const auto d = system_[i].p - system_[j].p;
@@ -64,12 +77,18 @@ private:
   }
 
   template <typename T>
-  auto Value(size_t i, T a) const {
+  auto Value(const glm::vec3& x, const std::vector<size_t>& neighbor,
+             T a) const {
     decltype(a(0)) ret{0.f};
-    for (const auto j : search_.neighbors[i]) {
-      ret += system_[j].m / system_[j].rho * a(j) * W(i, j);
+    for (const auto j : neighbor) {
+      ret += system_[j].m / system_[j].rho * a(j) * W(x, system_[j].p);
     }
     return ret;
+  }
+
+  template <typename T>
+  auto Value(size_t i, T a) const {
+    return Value(system_[i].p, search_.neighbors[i], a);
   }
 
   template <typename T>
