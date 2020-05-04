@@ -2,9 +2,6 @@
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -35,10 +32,6 @@ void CursorPosCallback(GLFWwindow *, double x, double y) {
 }
 
 void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods) {
-  if (ImGui::GetIO().WantCaptureMouse) {
-    camera.OnMouseButtonRelease();
-    return;
-  }
   if (button == GLFW_MOUSE_BUTTON_LEFT) {
     double x, y;
     glfwGetCursorPos(window, &x, &y);
@@ -52,10 +45,6 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods) {
 
 void KeyCallback(GLFWwindow *window, int key, int scancode, int action,
                  int mods) {
-  if (ImGui::GetIO().WantCaptureKeyboard) {
-    camera.forward_ = camera.left_ = camera.backward_ = camera.right_ = false;
-    return;
-  }
   switch (key) {
   case GLFW_KEY_W:
     camera.forward_ = action != GLFW_RELEASE;
@@ -107,40 +96,7 @@ GLFWwindow *Initialize() {
     exit(EXIT_FAILURE);
   }
 
-  // Setup Dear ImGui context
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-
-  // Setup Dear ImGui style
-  ImGui::StyleColorsDark();
-
-  // Setup Platform/Renderer bindings
-  ImGui_ImplGlfw_InitForOpenGL(window, true);
-  ImGui_ImplOpenGL3_Init("#version 150");
-
   return window;
-}
-
-void RenderUI() {
-  ImGui_ImplOpenGL3_NewFrame();
-  ImGui_ImplGlfw_NewFrame();
-  ImGui::NewFrame();
-
-  static auto show_demo_window = false;
-  if (show_demo_window) {
-    ImGui::ShowDemoWindow(&show_demo_window);
-  }
-
-  ImGui::Begin("Control", nullptr);
-  ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-  ImGui::Separator();
-  ImGui::Text("W, A, S, D to move camera");
-  ImGui::Text("Hold left mouse button to rotate camera");
-  ImGui::Checkbox("ImGui Demo", &show_demo_window);
-  ImGui::End();
-
-  ImGui::Render();
-  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 }  // namespace
@@ -173,8 +129,6 @@ int main() {
 
     axes.Draw(camera);
     renderer.Draw(camera);
-
-    RenderUI();
 
     glfwSwapBuffers(window);
     glfwPollEvents();
