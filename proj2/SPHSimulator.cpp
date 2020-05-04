@@ -24,7 +24,7 @@ SPHSimulator::SPHSimulator(const glm::vec3& min_bound,
   }
   std::cout << "Number of particles: " << system_.Size() << std::endl;
 
-  search_ = NeighborSearch(500, system_.Size());
+  search_ = NeighborSearch(500, system_.Size(), 2 * h);
   pressure_.resize(system_.Size());
 
   InitializeMass();
@@ -32,7 +32,7 @@ SPHSimulator::SPHSimulator(const glm::vec3& min_bound,
 
 void SPHSimulator::InitializeMass() {
   // Iteratively solve mass to correct initial density
-  search_.Update(system_, 2 * h);
+  search_.Update(system_);
   for (;;) {
     {
       auto error = -FLT_MAX;
@@ -59,7 +59,7 @@ void SPHSimulator::InitializeMass() {
 }
 
 void SPHSimulator::Update(float dt) {
-  search_.Update(system_, 2 * h);
+  search_.Update(system_);
 
   for (size_t i = 0; i < system_.Size(); ++i) {
     system_[i].rho =
