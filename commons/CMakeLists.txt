@@ -8,6 +8,6 @@ add_binary_bundle(common_shaders
 
 add_library(commons ${HEADERS} ${SOURCES})
 target_link_libraries(commons
-        PUBLIC glpp glm
+        PUBLIC glpp glm::glm
         PRIVATE common_shaders)
 target_include_directories(commons PUBLIC .)

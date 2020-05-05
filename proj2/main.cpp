@@ -76,7 +76,7 @@ GLFWwindow *Initialize() {
 
   // GLFW window
   const auto window =
-      glfwCreateWindow(640, 480, "Solid Mechanics", nullptr, nullptr);
+      glfwCreateWindow(640, 480, "Fluid Dynamics", nullptr, nullptr);
   if (!window) {
     glfwTerminate();
     exit(EXIT_FAILURE);

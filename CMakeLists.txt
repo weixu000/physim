@@ -8,6 +8,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(glfw3 REQUIRED)
 find_package(glm REQUIRED)
 
+link_libraries(${CMAKE_DL_LIBS})
+
 add_subdirectory(extern)
 add_subdirectory(commons)
 add_subdirectory(proj1)

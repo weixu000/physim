@@ -3,6 +3,7 @@
 #include <functional>
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
+#include <cmath>
 
 #include "Integrator.hpp"
 #include "NeighborSearch.hpp"
@@ -57,7 +58,7 @@ private:
     const auto d = system_[i].p - system_[j].p;
     const auto dd = glm::length(d);
     if (dd) {
-      return Df(dd / h) * d / dd / pow(h, 4);
+      return Df(dd / h) * d / dd / float(std::pow(h, 4));
     } else {
       return glm::vec3{0.f};
     }
@@ -77,7 +78,7 @@ private:
     glm::vec3 ret{0.f};
     for (const auto j : search_.neighbors[i]) {
       ret += system_[j].m *
-             (a(i) / pow(system_[i].rho, 2) + a(j) / pow(system_[j].rho, 2)) *
+             (a(i) / float(std::pow(system_[i].rho, 2)) + a(j) / float(std::pow(system_[j].rho, 2))) *
              DelW(i, j);
     }
     return system_[i].rho * ret;
@@ -90,7 +91,7 @@ private:
       const auto x_ij = system_[i].p - system_[j].p;
       ret += system_[j].m / system_[j].rho * (a(i) - a(j)) *
              glm::dot(x_ij, DelW(i, j)) /
-             (glm::dot(x_ij, x_ij) + .01f * pow(h, 2));
+             (glm::dot(x_ij, x_ij) + .01f * float(std::pow(h, 2)));
     }
     return 2.f * ret;
   }
