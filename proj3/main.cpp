@@ -6,6 +6,7 @@
 
 #include "Axes.hpp"
 #include "Camera.hpp"
+#include "Collision.hpp"
 #include "RigidBody.hpp"
 #include "RigidBodyRenderer.hpp"
 
@@ -20,7 +21,7 @@ RigidBody rb;
 RigidBodyRenderer renderer;
 
 void Restart() {
-  rb = RigidBody({0, 5, 0}, mat3{1.f}, vec3{1.f}, 1.f);
+  rb = RigidBody({0, 5, 0}, mat3{1.f}, vec3{1.f}, vec3{1.f}, 1.f);
   renderer = RigidBodyRenderer(vec3{1.f});
 }
 
@@ -84,7 +85,7 @@ GLFWwindow *Initialize() {
 
   // GLFW window
   const auto window =
-      glfwCreateWindow(640, 480, "Solid Mechanics", nullptr, nullptr);
+      glfwCreateWindow(640, 480, "Rigid Body", nullptr, nullptr);
   if (!window) {
     glfwTerminate();
     exit(EXIT_FAILURE);
@@ -114,6 +115,8 @@ int main() {
   Axes axes;
   Restart();
 
+  Collision collision;
+
   auto last_time = glfwGetTime();
 
   // Rendering
@@ -128,6 +131,8 @@ int main() {
     camera.Update(dt);
     // Do multiple physical simulation in one render loop
     for (auto ddt = dt; simulating && ddt > 0.f; ddt -= time_step) {
+      rb.AddForce({0, -9.8f, 0}, {0, 0, 0});
+      collision.Compute(rb);
       rb.Update(time_step);
     }
     renderer.Update(rb.GetTransform());
