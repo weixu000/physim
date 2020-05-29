@@ -1,6 +1,6 @@
 #include "RigidBody.hpp"
 
-#include <glm/gtx/matrix_cross_product.hpp>
+#include <glm/gtx/matrix_interpolation.hpp>
 #include <glm/gtx/transform.hpp>
 
 using namespace glm;
@@ -21,7 +21,10 @@ void RigidBody::Update(float dt) {
   r_ += p_ / m_ * dt;
 
   L_ += M_ * dt;
-  A_ += matrixCross3(GetOmega()) * A_ * dt;
+  const auto omega = GetOmega();
+  if (glm::length(omega) != 0.f) {
+    A_ = mat3(axisAngleMatrix(omega, length(omega) * dt)) * A_;
+  }
 
   f_ = vec3{0.f};
   M_ = vec3{0.f};

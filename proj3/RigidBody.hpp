@@ -38,7 +38,7 @@ private:
   glm::vec3 f_{0.f};
 
   glm::mat3 A_{1.f};
-  glm::vec3 L_{.5f};
+  glm::vec3 L_{.0f};
   glm::vec3 M_{0.f};
 
   glm::mat3 I_{};

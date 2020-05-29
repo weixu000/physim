@@ -21,7 +21,7 @@ RigidBody rb;
 RigidBodyRenderer renderer;
 
 void Restart() {
-  rb = RigidBody({0, 5, 0}, mat3{1.f}, vec3{1.f}, vec3{1.f}, 1.f);
+  rb = RigidBody({0, 5, 0}, mat3{1.f}, vec3{0.f}, vec3{1.f}, 1.f);
   renderer = RigidBodyRenderer(vec3{1.f});
 }
 
