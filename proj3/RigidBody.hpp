@@ -9,20 +9,20 @@ public:
             const glm::vec3& L, const glm::vec3& size, float mass);
 
   glm::mat4 GetTransform() const;
-  glm::vec3 GetVelocity(const glm::vec3& r_offset) const {
-    return p_ / m_ + glm::cross(GetOmega(), r_offset);
-  }
   glm::mat3 GetInertia() const { return A_ * I_ * transpose(A_); }
-
   glm::vec3 GetOffset(const glm::vec3& r) const { return r - r_; }
 
-  void AddForce(const glm::vec3& f, const glm::vec3& r_offset) {
-    f_ += f;
-    M_ += cross(r_offset, f);
+  // Functions below use offset vector
+  glm::vec3 GetVelocity(const glm::vec3& r) const {
+    return p_ / m_ + glm::cross(GetOmega(), r);
   }
-  void AddImpulse(const glm::vec3& j, const glm::vec3& r_offset) {
+  void AddForce(const glm::vec3& f, const glm::vec3& r) {
+    f_ += f;
+    M_ += cross(r, f);
+  }
+  void AddImpulse(const glm::vec3& j, const glm::vec3& r) {
     p_ += j;
-    L_ += cross(r_offset, j);
+    L_ += cross(r, j);
   }
 
   void Update(float dt);
