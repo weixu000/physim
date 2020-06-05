@@ -15,7 +15,7 @@ using namespace glm;
 namespace {
 Camera camera({-2, 1, -2}, {0, 0, 0}, 640, 480);
 
-const auto time_step = 1E-3f;
+const auto time_step = 1E-5f;
 
 RigidBody rb;
 RigidBodyRenderer renderer;

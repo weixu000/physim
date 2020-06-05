@@ -11,5 +11,5 @@ public:
 private:
   std::optional<glm::vec3> Detect(const RigidBody& rb) const;
 
-  float eps_{.5f};
+  float eps_{.5f}, mu_{.5f};
 };
