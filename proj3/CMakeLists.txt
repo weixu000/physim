@@ -6,4 +6,4 @@ add_binary_bundle(proj3_shaders
         NAME phong_frag PATH "shaders/phong.frag")
 
 add_executable(proj3 ${SOURCES} ${HEADERS})
-target_link_libraries(proj3 PRIVATE glpp glfw glm::glm commons proj3_shaders)
+target_link_libraries(proj3 PRIVATE glpp glfw glm::glm commons proj3_shaders imgui)
