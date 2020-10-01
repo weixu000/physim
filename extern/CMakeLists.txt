@@ -7,9 +7,9 @@ endforeach ()
 
 include(FetchContent)
 # Add ImGui
-FetchContent_Declare(imgui-git GIT_REPOSITORY https://github.com/ocornut/imgui.git)
-FetchContent_Populate(imgui-git)
-set(IMGUI_ROOT "${imgui-git_SOURCE_DIR}")
+FetchContent_Declare(imgui GIT_REPOSITORY https://github.com/ocornut/imgui.git)
+FetchContent_Populate(imgui)
+set(IMGUI_ROOT "${imgui_SOURCE_DIR}")
 file(GLOB IMGUI_SOURCES CONFIGURE_DEPENDS ${IMGUI_ROOT}/*.cpp ${IMGUI_ROOT}/*.h)
 set(IMGUI_IMPL_GLFW "${IMGUI_ROOT}/examples/imgui_impl_glfw.cpp" "${IMGUI_ROOT}/examples/imgui_impl_glfw.h")
 set(IMGUI_IMPL_OPENGL "${IMGUI_ROOT}/examples/imgui_impl_opengl3.cpp" "${IMGUI_ROOT}/examples/imgui_impl_opengl3.h")
