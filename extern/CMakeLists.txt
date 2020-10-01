@@ -6,7 +6,7 @@ foreach (EXTERN_DIR ${EXTERN_DIRS})
 endforeach ()
 
 include(FetchContent)
-# add ImGui
+# Add ImGui
 FetchContent_Declare(imgui-git GIT_REPOSITORY https://github.com/ocornut/imgui.git)
 FetchContent_Populate(imgui-git)
 set(IMGUI_ROOT "${imgui-git_SOURCE_DIR}")
