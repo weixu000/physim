@@ -17,3 +17,10 @@ add_library(imgui STATIC ${IMGUI_SOURCES} ${IMGUI_IMPL_GLFW} ${IMGUI_IMPL_OPENGL
 target_include_directories(imgui PUBLIC ${IMGUI_ROOT} ${IMGUI_ROOT}/examples)
 target_link_libraries(imgui PUBLIC glad glfw)
 target_compile_definitions(imgui PRIVATE IMGUI_IMPL_OPENGL_LOADER_GLAD)
+
+# Add GLFW3
+include(FetchContent)
+if (NOT TARGET glfw)
+    FetchContent_Declare(glfw3 GIT_REPOSITORY https://github.com/glfw/glfw.git)
+    FetchContent_MakeAvailable(glfw3)
+endif ()
